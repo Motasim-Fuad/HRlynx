@@ -83,6 +83,10 @@ class AuthRepository {
     String url = "${ApiConstants.baseUrl}/api/auth/password/reset-confirm/";
     return await NetworkApiServices.postApi(url, body, withAuth: false);
   }
+  Future<dynamic> resendForgotPasswordOtp(Map<String, dynamic> body) async {
+    String url = "${ApiConstants.baseUrl}/api/auth/resend-otp/";
+    return await NetworkApiServices.postApi(url, body, withAuth: false);
+  }
 
   // ---------- Google SignUp ----------
   Future<bool> googleSignUpAndSetPersona({

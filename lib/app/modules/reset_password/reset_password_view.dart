@@ -83,12 +83,13 @@ class ResetPassword extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              Obx(() => GestureDetector(
-                onTap:controller.isLoading.value
-                  ? null
-                  : () => controller.updatePassword() ,
-                child: Button(title: "Update Password"),
-              )),
+              Obx(() =>  Button(
+                title: "Update Password",
+                isLoading: controller.isLoading.value,
+                onTap: (){
+                  controller.updatePassword();
+                },),
+              )
             ],
           ),
         ),

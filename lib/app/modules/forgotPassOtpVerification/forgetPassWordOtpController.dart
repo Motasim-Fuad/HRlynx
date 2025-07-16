@@ -9,6 +9,7 @@ class ForgotPassOtpController extends GetxController {
   final email = ''.obs;
   final otpDigits = RxList<String>.filled(4, '');
   final timerSeconds = 60.obs;
+  final isLoading = false.obs;
 
   late List<TextEditingController> otpControllers;
   late List<FocusNode> otpFocusNodes;
@@ -58,6 +59,30 @@ class ForgotPassOtpController extends GetxController {
     }
   }
 
+  Future<void> resendCode() async {
+    try {
+      isLoading.value = true;
+
+      final body = {
+        "email": email.value.trim(),
+        "purpose": "password_reset",
+      };
+
+      final response = await _authRepo.resendForgotPasswordOtp(body);
+
+      if (response['success'] == true) {
+        Get.snackbar("Success", response['message'] ?? "OTP resent successfully");
+        _startTimer(); // 🔁 Restart the timer
+      } else {
+        Get.snackbar("Failed", response['message'] ?? "Failed to resend OTP");
+      }
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+      print("❌ Resend OTP error: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
   Future<void> verifyOtp() async {
     String otp = otpDigits.join();
     if (otp.length != 4) {
@@ -66,6 +91,8 @@ class ForgotPassOtpController extends GetxController {
     }
 
     try {
+      isLoading.value = true; // 👈 Start loading
+
       final body = {
         "email": email.value.trim(),
         "otp": otp,
@@ -75,20 +102,22 @@ class ForgotPassOtpController extends GetxController {
 
       if (response['success'] == true) {
         Get.snackbar("Success", response['message']);
-        // ✅ Navigate to ResetPassword with email & otp
         Get.to(() => ResetPassword(), arguments: {
           "email": email.value.trim(),
           "otp": otp,
         });
       } else {
         Get.snackbar("Failed", response['message'] ?? "OTP verification failed");
-        print("faild res: ${response['message'] }");
+        print("faild res: ${response['message']}");
       }
     } catch (e) {
       Get.snackbar("Error", e.toString());
       print("error :$e");
+    } finally {
+      isLoading.value = false; // 👈 Stop loading
     }
   }
+
 
 
 

@@ -90,20 +90,43 @@ class NetworkApiServices {
   }
 
   /// Handle API responses
+//   static dynamic _handleResponse(http.Response response) {
+//     print('🔎 Response Code: ${response.statusCode}');
+//     print('📦 Raw Response Body: ${response.body}');
+//
+//     try {
+//       final responseBody = jsonDecode(response.body);
+//       if (response.statusCode >= 200 && response.statusCode < 300) {
+//         return responseBody;
+//       } else {
+//         throw Exception(
+//             'API Error: ${response.statusCode} - ${responseBody.toString()}');
+//       }
+//     } catch (e) {
+//       throw FormatException('Unexpected response format: ${response.body}');
+//     }
+//   }
+
+
   static dynamic _handleResponse(http.Response response) {
     print('🔎 Response Code: ${response.statusCode}');
     print('📦 Raw Response Body: ${response.body}');
 
     try {
       final responseBody = jsonDecode(response.body);
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return responseBody;
-      } else {
-        throw Exception(
-            'API Error: ${response.statusCode} - ${responseBody.toString()}');
-      }
+
+      return {
+        "statusCode": response.statusCode,
+        "body": responseBody,
+        ...responseBody, // flatten success/message etc. for convenience
+      };
     } catch (e) {
       throw FormatException('Unexpected response format: ${response.body}');
     }
   }
+
 }
+
+
+
+

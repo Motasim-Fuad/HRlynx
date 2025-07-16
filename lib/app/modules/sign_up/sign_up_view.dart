@@ -28,7 +28,6 @@ class SignUp extends StatelessWidget {
   final confirmPasswordController = TextEditingController();
 
   @override
-  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -138,6 +137,7 @@ class SignUp extends StatelessWidget {
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
                                       color: AppColors.primarycolor,
+                                        fontWeight: FontWeight.bold
                                     ),
                                   ),
                                   Text(' and '),
@@ -146,6 +146,7 @@ class SignUp extends StatelessWidget {
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
                                       color: AppColors.primarycolor,
+                                      fontWeight: FontWeight.bold
                                     ),
                                   ),
                                 ],
@@ -154,11 +155,12 @@ class SignUp extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: () => signUpController.signUpUser(),
-                          child: Button(title: 'Sign Up'),
+                        const SizedBox(height: 20),
+                        Button(
+                          title: 'Sign Up', onTap: () => signUpController.signUpUser(),
+                          isLoading: signUpController.isLoading.value,
                         ),
+
 
                         const SizedBox(height: 20),
                         Row(
@@ -180,9 +182,6 @@ class SignUp extends StatelessWidget {
                 ),
               ),
             ),
-
-            if (signUpController.isLoading.value)
-              const Center(child: CircularProgressIndicator()),
           ],
         );
       }),

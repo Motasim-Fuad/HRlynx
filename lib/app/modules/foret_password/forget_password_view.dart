@@ -68,14 +68,12 @@ class ForgetPassword extends StatelessWidget {
               const SizedBox(height: 30),
 
               Obx(() {
-                if (controller.isLoading.value) {
-                  return const CircularProgressIndicator();
-                } else {
-                  return GestureDetector(
+                  return Button(
                     onTap: controller.submitForgotPassword,
-                    child: const Button(title: 'Send Reset Link'),
+                    title: 'Send Reset Link',
+                    isLoading: controller.isLoading.value,
                   );
-                }
+
               }),
             ],
           ),

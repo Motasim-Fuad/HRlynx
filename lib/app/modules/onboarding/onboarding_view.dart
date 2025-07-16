@@ -30,7 +30,7 @@ class OnboardingView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             Image.asset(AppImages.splash, height: 170, ),
@@ -96,17 +96,15 @@ class OnboardingView extends StatelessWidget {
               }),
             ),
 
-            GestureDetector(
-              onTap: () {
+
+              Button(title: 'Next',onTap: () {
                 // Example: save selected persona to memory
                 final selectedPersona = controller.personaList[controller.selectedIndex.value];
                 print("Selected: ${selectedPersona.title}");
 
                 Get.to(() => LogInView());
-              },
-              child: Button(title: 'Next'),
-            ),
-            const SizedBox(height: 16),
+              },),
+
           ],
         ),
       ),

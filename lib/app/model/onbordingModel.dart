@@ -8,7 +8,7 @@ class OnbordingModel {
   OnbordingModel(
       {this.success, this.message, this.timestamp, this.statusCode, this.data});
 
-  OnbordingModel.fromJson(Map<String, dynamic> json) {
+  OnbordingModel.fromJson(Map<dynamic, dynamic> json) {
     success = json['success'];
     message = json['message'];
     timestamp = json['timestamp'];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../utils/app_colors.dart';
 import 'forgetPassWordOtpController.dart';
 import '../../common_widgets/button.dart';
 
@@ -47,18 +48,59 @@ class Forgotpassotpview extends StatelessWidget {
               }),
             ),
             const SizedBox(height: 30),
-            GestureDetector(
-              onTap: controller.verifyOtp,
-              child: const Button(title: 'Verify OTP'),
-            ),
-            const SizedBox(height: 20),
-            Obx(() {
-              final minutes =
-              (controller.timerSeconds.value ~/ 60).toString().padLeft(2, '0');
-              final seconds =
-              (controller.timerSeconds.value % 60).toString().padLeft(2, '0');
-              return Text("Resend in $minutes:$seconds");
+            Obx((){
+              return Button(title: 'Verify OTP',
+                onTap: controller.verifyOtp,
+                isLoading: controller.isLoading.value,
+              );
             }),
+
+
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Click Resend Code after '),
+                Obx(() {
+                  String minutes = (controller.timerSeconds.value ~/ 60)
+                      .toString()
+                      .padLeft(2, '0');
+                  String seconds = (controller.timerSeconds.value % 60)
+                      .toString()
+                      .padLeft(2, '0');
+                  return Text(
+                    '$minutes:$seconds',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: controller.timerSeconds.value == 0
+                          ? AppColors.primarycolor
+                          : Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                }),
+                Text(" Seconds"),
+              ],
+
+            ),
+            Obx(() => TextButton(
+              onPressed: controller.timerSeconds.value == 0
+                  ? () {
+                controller.resendCode();
+              }
+                  : null, // Disable button if timer is not zero
+              child: Text(
+                'Resend code',
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontSize: 16,
+                  color: controller.timerSeconds.value == 0
+                      ? AppColors.primarycolor
+                      : Colors.grey, // dim the text color when inactive
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            )),
           ],
         ),
       ),

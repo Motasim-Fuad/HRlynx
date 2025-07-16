@@ -48,7 +48,7 @@ class LogInView extends StatelessWidget {
                       style: TextStyle(fontSize: 16, color: Color(0xFF7D848D)),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 30),
 
                     // Email
                     _buildLabel('Your Email'),
@@ -83,8 +83,9 @@ class LogInView extends StatelessWidget {
                         child: Text(
                           'Forgot Password?',
                           style: TextStyle(
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
                             color: AppColors.primarycolor,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -113,6 +114,7 @@ class LogInView extends StatelessWidget {
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: AppColors.primarycolor,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -124,6 +126,7 @@ class LogInView extends StatelessWidget {
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: AppColors.primarycolor,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
@@ -136,11 +139,10 @@ class LogInView extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Login Button
-                    Obx(() => controller.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
-                        : GestureDetector(
+                    Obx(() => Button(
+                      title: 'Log In',
+                      isLoading: controller.isLoading.value, // 👈 pass loading state
                       onTap: controller.loginUser,
-                      child: const Button(title: 'Log In'),
                     )),
 
                     const SizedBox(height: 20),

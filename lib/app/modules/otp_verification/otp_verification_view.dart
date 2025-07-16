@@ -15,10 +15,9 @@ class OtpVerificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('')),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -86,34 +85,17 @@ class OtpVerificationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               // Wrapped your Button widget with InkWell
-              InkWell(
+              Obx(() => Button(
+                title: 'Verify',
                 onTap: () => otpController.verifyOtp(),
-                borderRadius: BorderRadius.circular(
-                  12,
-                ), // Match button's border radius for ripple effect
-                child: const Button(
-                  title: 'Verify',
-                ), // Your custom Button widget as a child
-              ),
+                isLoading: otpController.isLoading.value,
+              )),//
+
               const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   TextButton(
-                     onPressed: (){
-                       otpController.resendCode();
-                     },
-                     child: Text(
-                      'Resend code',
-
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 16,
-                        color: Color(0xFF7D848D),
-                        fontWeight: FontWeight.w400,
-                      ),
-                                       ),
-                   ),
+                  Text('Click Resend Code after '),
                   Obx(() {
                     String minutes = (otpController.timerSeconds.value ~/ 60)
                         .toString()
@@ -121,24 +103,39 @@ class OtpVerificationScreen extends StatelessWidget {
                     String seconds = (otpController.timerSeconds.value % 60)
                         .toString()
                         .padLeft(2, '0');
-                    return GestureDetector(
-                      onTap: otpController.timerSeconds.value == 0
-                          ? otpController.resendCode
-                          : null,
-                      child: Text(
-                        '$minutes:$seconds',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: otpController.timerSeconds.value == 0
-                              ? AppColors.primarycolor
-                              : Colors.grey[700],
-                          fontWeight: FontWeight.bold,
-                        ),
+                    return Text(
+                      '$minutes:$seconds',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: otpController.timerSeconds.value == 0
+                            ? AppColors.primarycolor
+                            : Colors.grey[700],
+                        fontWeight: FontWeight.bold,
                       ),
                     );
                   }),
+                  Text(" Seconds"),
                 ],
+
               ),
+              Obx(() => TextButton(
+                onPressed: otpController.timerSeconds.value == 0
+                    ? () {
+                  otpController.resendCode();
+                }
+                    : null, // Disable button if timer is not zero
+                child: Text(
+                  'Resend code',
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontSize: 20,
+                    color: otpController.timerSeconds.value == 0
+                        ? AppColors.primarycolor
+                        : Colors.grey, // dim the text color when inactive
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )),
             ],
           ),
         ),

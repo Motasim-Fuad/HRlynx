@@ -2,29 +2,50 @@ import 'package:damaged303/app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class Button extends StatelessWidget {
-  const Button({super.key, required this.title});
   final String title;
+  final VoidCallback? onTap;
+  final bool isLoading; // 👈 NEW PARAMETER
+
+  const Button({
+    Key? key,
+    required this.title,
+    this.onTap,
+    this.isLoading = false, // 👈 default false
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Container(
-        child: Center(
-          child: Text(title,
-          style: TextStyle(
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onTap, // disable when loading
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primarycolor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : Text(
+          title,
+          style: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFFFFFFFF)
-          ),),
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: AppColors.primarycolor,
-        ),
-        height: 56,
-        width: double.infinity,
       ),
     );
   }
 }
+
+

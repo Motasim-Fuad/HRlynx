@@ -144,6 +144,8 @@ class OtpController extends GetxController {
     }
 
     try {
+      isLoading.value = true;
+
       final body = {
         "email": email.value.trim(),
         "otp": otp,
@@ -153,37 +155,22 @@ class OtpController extends GetxController {
       final message = response['message']?.toString().toLowerCase() ?? '';
 
       if (message.contains("success") || message.contains("verified")) {
-        // ✅ Save access + refresh tokens using correct keys
         if (response.containsKey("access") && response.containsKey("refresh")) {
-          await TokenStorage.saveOtpTokens(
-            response["access"],
-            response["refresh"],
-          );
-
-          await TokenStorage.saveLoginTokens(
-            response["access"],
-            response["refresh"],
-          );
-
-          print("✅ Token saved via TokenStorage: ${response['access']}");
-        } else {
-          print("❌ Access/refresh tokens not found in response");
+          await TokenStorage.saveOtpTokens(response["access"], response["refresh"]);
+          await TokenStorage.saveLoginTokens(response["access"], response["refresh"]);
         }
 
         Get.snackbar("Success", response['message']);
-        print("✅ OTP verified, calling setPersonaType...");
-
         await submitSelectedPersona();
       } else {
         Get.snackbar("Failed", response['message'] ?? "OTP verification failed");
-        print("❌ OTP verify error: ${response['message']}");
       }
     } catch (e) {
       Get.snackbar("Error", e.toString());
-      print("❌ OTP verify exception: $e");
+    } finally {
+      isLoading.value = false; // ✅ Ensure this always runs
     }
   }
-
 
   void resendCode() async {
     if (timerSeconds.value == 0) {

@@ -14,41 +14,41 @@ class SecondSplash extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(AppImages.splash, height: 200,),
-          Text(
-            'Personalized ',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 32,
-              color: AppColors.primarycolor,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(AppImages.splash, height: 170,),
+            Text(
+              'Personalized ',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 32,
+                color: AppColors.primarycolor,
+              ),
+            ),   Text(
+              'News Feed',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 32,
+                color: AppColors.primarycolor,
+              ),
             ),
-          ),   Text(
-            'News Feed',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 32,
-              color: AppColors.primarycolor,
+            SizedBox(height: 20),
+            Text(
+              AppText.secondsplash,
+              style: TextStyle(
+                fontWeight: FontWeight.w400,
+                fontSize: 16,
+                color: Color(0xFF050505),
+              ),
             ),
-          ),
-          SizedBox(height: 30),
-          Text(
-            AppText.secondsplash,
-            style: TextStyle(
-              fontWeight: FontWeight.w400,
-              fontSize: 16,
-              color: Color(0xFF050505),
-            ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Text(
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
                   'Breaking News on Important HR Topics:',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
@@ -56,83 +56,77 @@ class SecondSplash extends StatelessWidget {
                     color: Color(0xFF050505),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
-          SizedBox(height: 10),
-          SplashText(text: 'HR Strategy & Leadership'),
-          SplashText(text: 'Workforce Compliance & Regulation'),
-          SplashText(text: 'Talent Acquisition & Labor Trends'),
-          SplashText(text: 'Compensation, Benefits & Rewards'),
-          SplashText(text: 'People Development & Culture'),
+            SizedBox(height: 10),
+            SplashText(text: 'HR Strategy & Leadership'),
+            SplashText(text: 'Workforce Compliance & Regulation'),
+            SplashText(text: 'Talent Acquisition & Labor Trends'),
+            SplashText(text: 'Compensation, Benefits & Rewards'),
+            SplashText(text: 'People Development & Culture'),
 
 
-          Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 12,
-                  width: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xffE6ECEB),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 12,
-                  width: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primarycolor,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 12,
-                  width: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xffE6ECEB),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 12,
-                  width: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xffE6ECEB),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Get.offAll(ThirdSplash());
-                  },
-                  child: Button(title: 'Next'),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 12,
+                    width: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xffE6ECEB),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 12,
+                    width: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primarycolor,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 12,
+                    width: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xffE6ECEB),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 12,
+                    width: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xffE6ECEB),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          SizedBox(height: 16),
-        ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Button(title: 'Next',onTap: (){ Get.offAll(ThirdSplash());},),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
