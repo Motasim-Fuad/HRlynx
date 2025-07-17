@@ -122,16 +122,9 @@ class ThirdSplash extends StatelessWidget {
                 ),
               ],
             ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Button(title: 'Next',onTap: (){
-                    Get.offAll(OnboardingView());
-                  },),
-                ],
-              ),
-            ),
+            Button(title: 'Next',onTap: (){
+              Get.offAll(OnboardingView());
+            },),
 
           ],
         ),

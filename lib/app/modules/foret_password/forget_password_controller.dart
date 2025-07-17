@@ -1,39 +1,37 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../api_servies/repository/auth_repo.dart';
-import '../forgotPassOtpVerification/forgotPassOtpView.dart';
-import '../otp_verification/otp_verification_view.dart';
 
 class ForgetPasswordController extends GetxController {
-  final AuthRepository _authRepo = AuthRepository();
-  final email = ''.obs;
-  final isLoading = false.obs;
+  final AuthRepository _authRepository = AuthRepository();
+
+  RxString email = ''.obs;
+  RxBool isLoading = false.obs;
 
   Future<void> submitForgotPassword() async {
-    if (email.value.trim().isEmpty) {
-      Get.snackbar("Error", "Please enter your email");
+    if (email.value.isEmpty || !GetUtils.isEmail(email.value)) {
+      Get.snackbar('Error', 'Please enter a valid email address',
+          backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
+    isLoading.value = true;
+
     try {
-      isLoading.value = true;
-
-      final body = {
-        "email": email.value.trim(),
-      };
-
-      final response = await _authRepo.forgotPassword(body);
+      final response = await _authRepository.forgotPassword({'email': email.value});
 
       if (response['success'] == true) {
-        Get.snackbar("Success", response['message'] ?? "Check your email");
-
-        // Navigate to OTP screen or confirmation
-        Get.to(() => Forgotpassotpview(), arguments: email.value.trim());
-
+        Get.snackbar('Success', response['message'] ?? 'Reset link sent',
+            backgroundColor: Colors.green, colorText: Colors.white);
+        // Optionally navigate or reset input
       } else {
-        Get.snackbar("Failed", response['message'] ?? "Something went wrong");
+        Get.snackbar('Failed', response['message'] ?? 'Something went wrong',
+            backgroundColor: Colors.orange, colorText: Colors.white);
       }
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      Get.snackbar('Error', 'Something went wrong: $e',
+          backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }

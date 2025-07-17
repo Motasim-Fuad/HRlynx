@@ -117,14 +117,7 @@ class SecondSplash extends StatelessWidget {
                 ),
               ],
             ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Button(title: 'Next',onTap: (){ Get.offAll(ThirdSplash());},),
-                ],
-              ),
-            ),
+            Button(title: 'Next',onTap: (){ Get.offAll(ThirdSplash());},),
           ],
         ),
       ),

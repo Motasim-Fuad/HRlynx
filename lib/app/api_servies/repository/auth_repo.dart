@@ -138,5 +138,15 @@ class AuthRepository {
     return await NetworkApiServices.deleteApi(url, tokenType: 'login');
   }
 
+  Future<dynamic> changePassword(Map<String, dynamic> body) async {
+    String url = "${ApiConstants.baseUrl}/api/auth/password/change/";
+    return await NetworkApiServices.postApi(
+      url,
+      body,
+      withAuth: true,
+      tokenType: 'login', // Use access token from login
+    );
+  }
+
 
 }

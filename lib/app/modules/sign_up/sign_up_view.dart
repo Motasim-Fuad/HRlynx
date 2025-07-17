@@ -20,7 +20,6 @@ class SignUp extends StatelessWidget {
   SignUp({super.key});
 
   final PasswordController passwordcontroller = Get.put(PasswordController());
-
   final SignUpController signUpController = Get.put(SignUpController());
 
   final emailController = TextEditingController();
@@ -41,142 +40,162 @@ class SignUp extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenWidth < 600 ? 60 : 90),
-                        const Center(
-                          child: Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 26,
-                              color: Color(0xFF1B1E28),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Center(
-                          child: Text(
-                            'Please complete and create account',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              color: Color(0xFF7D848D),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 50),
-
-                        _label("Your Email"),
-                        CustomTextFormField(
-                          controller: emailController,
-                          hintText: 'arraihan815@gmail.com',
-                          keyboardType: TextInputType.emailAddress,
-                          obscureText: false,
-                          onChanged: (value) => signUpController.email.value = value,
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        _label("Password"),
-                        Obx(() => CustomTextFormField(
-                          controller: passwordController,
-                          hintText: 'Enter your new Password',
-                          keyboardType: TextInputType.text,
-                          obscureText: passwordcontroller.isObscured.value,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              passwordcontroller.isObscured.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                            ),
-                            onPressed: passwordcontroller.toggleObscureText,
-                          ),
-                          onChanged: (value) =>
-                          signUpController.password.value = value,
-                        )),
-
-                        const SizedBox(height: 20),
-
-                        _label("Confirm Password"),
-                        Obx(() => CustomTextFormField(
-                          controller: confirmPasswordController,
-                          hintText: 'Re-enter Password',
-                          keyboardType: TextInputType.text,
-                          obscureText: passwordcontroller.isObscured.value,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              passwordcontroller.isObscured.value
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                            ),
-                            onPressed: passwordcontroller.toggleObscureText,
-                          ),
-                          onChanged: (value) =>
-                          signUpController.confirmPassword.value = value,
-                        )),
-
-                        const SizedBox(height: 10),
-                        const Text('Password must be 8 characters'),
-
-                        const SizedBox(height: 20),
-
-                        Row(
-                          children: [
-                            Obx(() => Checkbox(
-                              value: signUpController.isChecked.value,
-                              onChanged: signUpController.toggleCheckbox,
-                            )),
-                            const Flexible(
-                              child: Wrap(
-                                children: [
-                                  Text('I agree to the '),
-                                  Text(
-                                    'Terms of Use',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      color: AppColors.primarycolor,
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  Text(' and '),
-                                  Text(
-                                    'Privacy Policy.',
-                                    style: TextStyle(
-                                      decoration: TextDecoration.underline,
-                                      color: AppColors.primarycolor,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                ],
+                    child: Form(
+                      key: signUpController.formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: screenWidth < 600 ? 60 : 90),
+                          const Center(
+                            child: Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 26,
+                                color: Color(0xFF1B1E28),
                               ),
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-                        Button(
-                          title: 'Sign Up', onTap: () => signUpController.signUpUser(),
-                          isLoading: signUpController.isLoading.value,
-                        ),
-
-
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Already have an account?'),
-                            TextButton(
-                              onPressed: () => Get.to(LogInView()),
-                              child: Text(
-                                'Log In',
-                                style: TextStyle(color: AppColors.primarycolor),
+                          ),
+                          const SizedBox(height: 10),
+                          const Center(
+                            child: Text(
+                              'Please complete and create account',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                color: Color(0xFF7D848D),
+                                fontSize: 16,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(height: 50),
+
+                          _label("Your Email"),
+                          CustomTextFormField(
+                            controller: emailController,
+                            hintText: 'arraihan815@gmail.com',
+                            keyboardType: TextInputType.emailAddress,
+                            obscureText: false,
+                            onChanged: (value) => signUpController.email.value = value,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Email is required';
+                              } else if (!GetUtils.isEmail(value.trim())) {
+                                return 'Invalid email format';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          _label("Password"),
+                          Obx(() => CustomTextFormField(
+                            controller: passwordController,
+                            hintText: 'Enter your new Password',
+                            keyboardType: TextInputType.text,
+                            obscureText: passwordcontroller.isObscured.value,
+                            suffixIcon: IconButton(
+                              icon: Icon(passwordcontroller.isObscured.value
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined),
+                              onPressed: passwordcontroller.toggleObscureText,
+                            ),
+                            onChanged: (value) =>
+                            signUpController.password.value = value,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              } else if (value.length < 8) {
+                                return 'Minimum 8 characters required';
+                              }
+                              return null;
+                            },
+                          )),
+
+                          const SizedBox(height: 20),
+
+                          _label("Confirm Password"),
+                          Obx(() => CustomTextFormField(
+                            controller: confirmPasswordController,
+                            hintText: 'Re-enter Password',
+                            keyboardType: TextInputType.text,
+                            obscureText: passwordcontroller.isObscured.value,
+                            suffixIcon: IconButton(
+                              icon: Icon(passwordcontroller.isObscured.value
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined),
+                              onPressed: passwordcontroller.toggleObscureText,
+                            ),
+                            onChanged: (value) =>
+                            signUpController.confirmPassword.value = value,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              return null;
+                            },
+                          )),
+
+                          const SizedBox(height: 10),
+                          const Text('Password must be 8 characters'),
+
+                          const SizedBox(height: 20),
+
+                          // Terms
+                          Row(
+                            children: [
+                              Obx(() => Checkbox(
+                                value: signUpController.isChecked.value,
+                                onChanged: signUpController.toggleCheckbox,
+                              )),
+                              const Flexible(
+                                child: Wrap(
+                                  children: [
+                                    Text('I agree to the '),
+                                    Text(
+                                      'Terms of Use',
+                                      style: TextStyle(
+                                          decoration: TextDecoration.underline,
+                                          color: AppColors.primarycolor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(' and '),
+                                    Text(
+                                      'Privacy Policy.',
+                                      style: TextStyle(
+                                          decoration: TextDecoration.underline,
+                                          color: AppColors.primarycolor,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 20),
+                          Button(
+                            title: 'Sign Up',
+                            onTap: signUpController.signUpUser,
+                            isLoading: signUpController.isLoading.value,
+                          ),
+
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Already have an account?'),
+                              TextButton(
+                                onPressed: () => Get.to(LogInView()),
+                                child: Text(
+                                  'Log In',
+                                  style: TextStyle(color: AppColors.primarycolor),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -187,7 +206,6 @@ class SignUp extends StatelessWidget {
       }),
     );
   }
-
 
   Widget _label(String text) {
     return Row(
@@ -204,4 +222,5 @@ class SignUp extends StatelessWidget {
     );
   }
 }
+
 

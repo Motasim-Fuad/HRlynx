@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:damaged303/app/common_widgets/button.dart';
 import 'package:damaged303/app/common_widgets/text_field.dart';
 import 'package:damaged303/app/modules/foret_password/forget_password_controller.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class ForgetPassword extends StatelessWidget {
   const ForgetPassword({super.key});
@@ -10,6 +10,7 @@ class ForgetPassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ForgetPasswordController());
+    final emailController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(title: const Text('')),
@@ -17,10 +18,11 @@ class ForgetPassword extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 150),
 
-              Text(
+              const Text(
                 'Forgot Password',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
@@ -31,9 +33,9 @@ class ForgetPassword extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              Text(
+              const Text(
                 'Enter your email account to reset\nyour password',
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 style: TextStyle(
                   fontWeight: FontWeight.w400,
                   fontSize: 16,
@@ -43,22 +45,19 @@ class ForgetPassword extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Email',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      color: Color(0xff050505),
-                    ),
-                  ),
-                ],
+              const Text(
+                'Your Email',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  color: Color(0xff050505),
+                ),
               ),
 
-              // This is not reactive so doesn't need Obx
+              const SizedBox(height: 10),
+
               CustomTextFormField(
+                controller: emailController,
                 hintText: 'Please enter your email',
                 keyboardType: TextInputType.emailAddress,
                 obscureText: false,
@@ -68,12 +67,11 @@ class ForgetPassword extends StatelessWidget {
               const SizedBox(height: 30),
 
               Obx(() {
-                  return Button(
-                    onTap: controller.submitForgotPassword,
-                    title: 'Send Reset Link',
-                    isLoading: controller.isLoading.value,
-                  );
-
+                return Button(
+                  onTap: controller.submitForgotPassword,
+                  title: 'Send Reset Link',
+                  isLoading: controller.isLoading.value,
+                );
               }),
             ],
           ),

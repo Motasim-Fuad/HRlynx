@@ -1,39 +1,54 @@
 import 'package:flutter/material.dart';
 
 class CustomTextFormField extends StatelessWidget {
-  final TextEditingController? controller;
+  final TextEditingController controller;
   final String hintText;
-  final TextInputType keyboardType;
   final bool obscureText;
+  final TextInputType keyboardType;
   final Widget? suffixIcon;
-  final Function(String)? onChanged; // ✅ ADD THIS LINE
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged; // ✅ Add this
 
   const CustomTextFormField({
     super.key,
-    this.controller,
+    required this.controller,
     required this.hintText,
-    required this.keyboardType,
-    required this.obscureText,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
     this.suffixIcon,
-    this.onChanged, // ✅ ADD THIS LINE
+    this.validator,
+    this.onChanged, // ✅ Add this
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      keyboardType: keyboardType,
       obscureText: obscureText,
-      onChanged: onChanged,
+      keyboardType: keyboardType,
+      validator: validator,
+      onChanged: onChanged, // ✅ Add this
       decoration: InputDecoration(
-        fillColor: Colors.grey,
         hintText: hintText,
         suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.blue),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
       ),
     );
   }
 }
+
