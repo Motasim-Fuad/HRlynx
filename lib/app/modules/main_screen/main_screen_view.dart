@@ -13,7 +13,7 @@ class MainScreen extends StatelessWidget {
 
   final List<Widget> screens = [
     HomeView(),
-    CahtView(chat_name: 'Talent Acquisition', chat_imng: AppImages.home1),
+    // CahtView(),
     NewsView(),
     PorfileView(),
   ];
@@ -33,10 +33,10 @@ class MainScreen extends StatelessWidget {
               icon: Icon(Icons.home_rounded),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_outlined),
-              label: 'Chat',
-            ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.chat_outlined),
+            //   label: 'Chat',
+            // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.newspaper_rounded),
               label: 'News',

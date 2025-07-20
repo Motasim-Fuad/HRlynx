@@ -107,19 +107,23 @@ class NetworkApiServices {
 //     }
 //   }
 
-
   static dynamic _handleResponse(http.Response response) {
     print('🔎 Response Code: ${response.statusCode}');
+
     print('📦 Raw Response Body: ${response.body}');
 
     try {
       final responseBody = jsonDecode(response.body);
 
-      return {
-        "statusCode": response.statusCode,
-        "body": responseBody,
-        ...responseBody, // flatten success/message etc. for convenience
-      };
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        // More detailed error message
+        final errorMsg = responseBody['message'] ??
+            responseBody['detail'] ??
+            'Unknown error (${response.statusCode})';
+        throw Exception('API Error: $errorMsg');
+      }
     } catch (e) {
       throw FormatException('Unexpected response format: ${response.body}');
     }

@@ -11,18 +11,6 @@ import '../../model/onbordingModel.dart'; // <-- import model
 class OnboardingView extends StatelessWidget {
   final HrRoleController controller = Get.put(HrRoleController());
 
-  // Custom images assigned manually by index
-  final List<String> customImages = [
-    AppImages.home2,
-    AppImages.home1,
-    AppImages.home3,
-    AppImages.home4,
-    AppImages.home7,
-    AppImages.home5,
-    AppImages.home6,
-    AppImages.home8,
-  ];
-
   OnboardingView({super.key});
 
   @override
@@ -59,9 +47,8 @@ class OnboardingView extends StatelessWidget {
                   physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
                     Data persona = controller.personaList[index];
-                    final image = index < customImages.length
-                        ? customImages[index]
-                        : AppImages.placeholder;
+
+                    final image = persona.avatar ?? '';
 
                     return Obx(
                           () => SelectableTile(

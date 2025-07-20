@@ -1,14 +1,14 @@
-class OnbordingModel {
+class AllAiPersonaChat {
   bool? success;
   String? message;
   String? timestamp;
   int? statusCode;
   List<Data>? data;
 
-  OnbordingModel(
+  AllAiPersonaChat(
       {this.success, this.message, this.timestamp, this.statusCode, this.data});
 
-  OnbordingModel.fromJson(Map<dynamic, dynamic> json) {
+  AllAiPersonaChat.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
     timestamp = json['timestamp'];

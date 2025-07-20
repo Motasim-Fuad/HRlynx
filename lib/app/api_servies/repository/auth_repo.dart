@@ -148,5 +148,45 @@ class AuthRepository {
     );
   }
 
+// ---------- home/chat ----------
+
+  Future<dynamic> getAllAiPersona() async {
+    String url = "${ApiConstants.baseUrl}/api/aipersona/personas/";
+    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+  }
+
+
+  Future<String?> createSession(int personaId) async {
+    try {
+      String url = "${ApiConstants.baseUrl}/api/chat/sessions/create/";
+
+      final body = {
+        "persona_id": personaId,
+      };
+
+      final response = await NetworkApiServices.postApi(
+        url,
+        body,
+        withAuth: true,
+        tokenType: 'login',
+      );
+
+      print('✅ Session creation response: $response');
+
+      if (response != null &&
+          response['data'] != null &&
+          response['data']['session'] != null) {
+        return response['data']['session']['id']?.toString();
+      } else {
+        throw Exception('Invalid session response format');
+      }
+    } catch (e) {
+      print('❌ Error creating session: $e');
+      return null;
+    }
+  }
+
+
+
 
 }

@@ -1,21 +1,27 @@
-import 'package:damaged303/app/common_widgets/home_stack.dart';
-import 'package:damaged303/app/modules/chat/caht_view.dart';
-import 'package:damaged303/app/modules/news/news_view.dart';
-import 'package:damaged303/app/utils/app_colors.dart';
-import 'package:damaged303/app/utils/app_images.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../utils/app_colors.dart';
+import '../../utils/app_images.dart';
+import '../../modules/news/news_view.dart';
+
+import 'chat_al_ai_persona_controller.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(ChatAllAiPersona());
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.only(left: 20),
-          child: CircleAvatar(backgroundImage: AssetImage(AppImages.profie)),
+          child: CircleAvatar(
+            backgroundImage: AssetImage(AppImages.profie),
+          ),
         ),
         title: const Text(
           'HRlynx Home',
@@ -29,237 +35,217 @@ class HomeView extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.notifications_none_outlined, size: 30),
+            icon: const Icon(Icons.notifications_none_outlined, size: 30),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 20),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                height: Get.height * 0.23,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 600;
 
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Image.asset(
-                          AppImages.home_container,
-                          fit: BoxFit.cover,
-                          color: Color(0xFF000000).withOpacity(0.6),
-                          colorBlendMode: BlendMode.darken,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Breaking HR News Card ---
+                Container(
+                  height: size.height * 0.25,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            AppImages.home_container,
+                            fit: BoxFit.cover,
+                            color: Colors.black.withOpacity(0.6),
+                            colorBlendMode: BlendMode.darken,
+                          ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 10,
-                          bottom: 10,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Breaking HR News',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 24,
-                                color: Color(0xFFFFFFFF),
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            Text(
-                              'Stay updated with the latest HR insights, trends and policy changes.',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                                color: Color(0xFFFFFFFF),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            GestureDetector(
-                              onTap: () {
-                                Get.to(NewsView());
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  color: Color(0xFF013D3B),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Breaking HR News',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 24,
+                                  color: Colors.white,
                                 ),
-                                width: 120,
-                                height: 40,
-
-                                child: Center(
-                                  child: Text(
-                                    'View Feed',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
-                                      color: Color(0xFFFFFFFF),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Stay updated with the latest HR insights, trends and policy changes.',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                onTap: () => Get.to(() => const NewsView()),
+                                child: Container(
+                                  width: 120,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF013D3B),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'View Feed',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Chat with your AI HR Assistants:',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 24,
-                  color: AppColors.primarycolor,
+
+                const SizedBox(height: 20),
+
+                Text(
+                  'Chat with your AI HR Assistants:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: isTablet ? 28 : 24,
+                    color: AppColors.primarycolor,
+                  ),
                 ),
-              ),
-              SizedBox(height: 10),
-              GridView(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 20,
-                  mainAxisSpacing: 20,
-                  childAspectRatio: 0.79,
-                ),
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_imng: AppImages.home1,
-                          chat_name: 'Talent Acquisition',
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'Talent Acquisition',
-                      img: AppImages.home1,
-                    ),
-                  ),
+                const SizedBox(height: 10),
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_imng: AppImages.home2,
-                          chat_name: 'HR Business\n      Partner',
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'HR Business\n      Partner',
-                      img: AppImages.home2,
-                    ),
-                  ),
+                Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_imng: AppImages.home3,
-                          chat_name: 'Compensation',
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'Compensation',
-                      img: AppImages.home3,
-                    ),
-                  ),
+                  if (controller.personaList.isEmpty) {
+                    return const Center(child: Text('No personas available'));
+                  }
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_name: 'Compliance',
-                          chat_imng: AppImages.home4,
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'Compliance',
-                      img: AppImages.home4,
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isTablet ? 3 : 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.7,
                     ),
-                  ),
+                    itemCount: controller.personaList.length,
+                    itemBuilder: (context, index) {
+                      final persona = controller.personaList[index];
+                      return GestureDetector(
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_imng: AppImages.home5,
-                          chat_name: '   Learning &\n Development',
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: '   Learning &\n Development',
-                      img: AppImages.home5,
-                    ),
-                  ),
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_name: 'Organizational\n Development',
-                          chat_imng: AppImages.home6,
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'Organizational\n Development',
-                      img: AppImages.home6,
-                    ),
-                  ),
+                        onTap: () async {
+                          await controller.startChatSession(persona);
+                        },
+                        // use web socket
+                        // onTap: () async {
+                        //   final sessionId = await controller.authRepo.createSession();
+                        //   final token = await TokenStorage.getLoginAccessToken();
+                        //
+                        //   if (sessionId != null && token != null) {
+                        //     final wsService = WebSocketService();
+                        //     wsService.connect(sessionId, token);
+                        //
+                        //     Get.put(ChatController(wsService: wsService));
+                        //
+                        //     Get.to(() => ChatView(
+                        //       sessionId: sessionId,
+                        //       token: token,
+                        //       webSocketService: wsService,
+                        //     ));
+                        //   } else {
+                        //     Get.snackbar("Error", "Could not create session");
+                        //   }
+                        // },
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_name: 'Total Rewards',
-                          chat_imng: AppImages.home7,
-                        ),
-                      );
-                    },
-                    child: HomeStack(
-                      tittle: 'Total Rewards',
-                      img: AppImages.home7,
-                    ),
-                  ),
 
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(
-                        CahtView(
-                          chat_imng: AppImages.home8,
-                          chat_name: 'HR Strategy',
+
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
+                                ),
+                                child: AspectRatio(
+                                  aspectRatio: 1, // Keeps image square like in screenshot
+                                  child: Image.network(
+                                    "${persona.avatar}",
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (context, error, stackTrace) => const Center(
+                                      child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                                    ),
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(child: CircularProgressIndicator());
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
+                                child: Text(
+                                  persona.title ?? 'No Title',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
+
                     },
-                    child: HomeStack(
-                      tittle: 'HR Strategy',
-                      img: AppImages.home8,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+
+                  );
+                }),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

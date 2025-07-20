@@ -1,70 +1,80 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
 
-import 'package:damaged303/app/modules/chat/chat_model.dart';
+import '../../api_servies/api_Constant.dart';
+import '../../api_servies/neteork_api_services.dart';
+import '../../api_servies/webSocketServices.dart';
+import '../../model/chat/persona_chat.dart';
 
-class VoiceController extends GetxController {
-  final _recorder = AudioRecorder(); // ✅ Use this instead of Record()
-  var isRecording = false.obs;
-  String? lastRecordedFile;
+class ChatController extends GetxController {
+  final WebSocketService wsService;
+  final String sessionId;
 
-  var messages = <ChatMessage>[].obs;
+  var messages = <Message>[].obs;
+  var session = Rxn<Session>();
+  StreamSubscription? _streamSubscription;
+
+  final ScrollController scrollController = ScrollController();
+
+  ChatController({
+    required this.wsService,
+    required this.sessionId,
+  });
 
   @override
   void onInit() {
+    fetchChatHistory();
+    _streamSubscription = wsService.stream.listen((event) {
+      final data = jsonDecode(event);
+
+      if (data['type'] == 'chat_message') {
+        messages.add(Message(sender: 'ai', message: data['message'], timestamp: DateTime.now()));
+        scrollToBottom();
+      } else if (data['type'] == 'message') {
+        messages.add(Message(sender: 'ai', message: data['content'], timestamp: DateTime.now()));
+        scrollToBottom();
+      }
+    });
     super.onInit();
-    if (messages.isEmpty) {
-      messages.addAll(dummyMessages);
-    }
   }
 
-  void sendTextMessage(String text) {
-    if (text.trim().isNotEmpty) {
-      messages.add(
-        ChatMessage(text: text.trim(), isMe: true, time: DateTime.now()),
-      );
-    }
+
+  void fetchChatHistory() async {
+    final url = "${ApiConstants.baseUrl}/api/chat/sessions/$sessionId/";
+    final response = await NetworkApiServices.getApi(url, tokenType: 'login');
+
+    final model = PersonaChatModel.fromJson(response);
+    session.value = model.data.session;
+    messages.addAll(model.data.messages);
+    scrollToBottom();
   }
 
-  // Removed duplicate onInit
-
-  Future<void> startRecording() async {
-    final permission = await Permission.microphone.request();
-    if (!permission.isGranted) return;
-
-    if (await _recorder.hasPermission()) {
-      final dir = await getApplicationDocumentsDirectory();
-      final filePath =
-          '${dir.path}/recorded_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(const RecordConfig(), path: filePath);
-      isRecording.value = true;
-    }
+  void send(String msg) {
+    messages.add(Message(sender: 'me', message: msg, timestamp: DateTime.now()));
+    wsService.sendMessage(msg);
+    scrollToBottom();
   }
 
-  Future<void> stopRecording() async {
-    final path = await _recorder.stop();
-    isRecording.value = false;
 
-    if (path != null) {
-      lastRecordedFile = path;
-      print("Recorded file path: $path");
-      // Add a message to the chat when recording is stopped, with audioPath
-      messages.add(
-        ChatMessage(
-          text: '[Voice message]',
-          isMe: true,
-          time: DateTime.now(),
-          audioPath: path, // Store the audio file path
-        ),
-      );
-    }
+  void scrollToBottom() {
+    Future.delayed(Duration(milliseconds: 100), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
-  Future<void> cancelRecording() async {
-    await _recorder.stop();
-    isRecording.value = false;
-    print("Recording cancelled");
+  @override
+  void onClose() {
+    _streamSubscription?.cancel();
+    wsService.disconnect();
+    super.onClose();
   }
 }

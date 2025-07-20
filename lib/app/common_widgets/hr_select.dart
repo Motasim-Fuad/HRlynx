@@ -34,7 +34,7 @@ class SelectableTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
+              child: Image.network(
                 imageUrl,
                 height: 90,
                 width: 90,
