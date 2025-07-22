@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../common_widgets/customtooltip.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/app_images.dart';
 import '../../modules/news/news_view.dart';
@@ -37,6 +38,8 @@ class HomeView extends StatelessWidget {
             onPressed: () {},
             icon: const Icon(Icons.notifications_none_outlined, size: 30),
           ),
+
+
         ],
       ),
       body: LayoutBuilder(

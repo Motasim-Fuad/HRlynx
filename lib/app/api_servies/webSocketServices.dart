@@ -13,7 +13,7 @@ class WebSocketService {
   void connect(String sessionId, String token, {int? personaId}) {
     try {
       final uri = Uri.parse(
-        "ws://begun-sanyo-pleasure-following.trycloudflare.com/ws/chat/$sessionId/?token=$token",
+        "ws://memory-brandon-boost-trustees.trycloudflare.com/ws/chat/$sessionId/?token=$token",
       );
       print('Connecting to WebSocket: $uri');
       _channel = WebSocketChannel.connect(uri);

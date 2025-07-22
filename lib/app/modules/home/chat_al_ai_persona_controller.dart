@@ -44,6 +44,7 @@ class ChatAllAiPersona extends GetxController {
           Get.put(ChatController(
             wsService: wsService,
             sessionId: sessionId,
+            personaId: personaId,
           ), tag: tag);
         } else {
           wsService = Get.find<ChatController>(tag: tag).wsService;
@@ -71,6 +72,7 @@ class ChatAllAiPersona extends GetxController {
       Get.put(ChatController(
         wsService: wsService,
         sessionId: sessionId,
+        personaId: personaId, // Add this
       ), tag: tag);
 
       Get.to(() => ChatView(
@@ -79,6 +81,7 @@ class ChatAllAiPersona extends GetxController {
         webSocketService: wsService,
         controllerTag: tag,
       ));
+
     } catch (e) {
       print('❌ Error in startChatSession: $e');
       Get.snackbar("Error", "Could not start chat session");

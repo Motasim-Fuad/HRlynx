@@ -1,28 +1,26 @@
-class PersonaChatModel {
+class SessionChatModel {
   final bool success;
-  final String message;
-  final DateTime timestamp;
-  final int statusCode;
-  final Data data;
+  final Session session;
+  final List<Message> messages;
+  final Pagination pagination;
 
-  PersonaChatModel({
+  SessionChatModel({
     required this.success,
-    required this.message,
-    required this.timestamp,
-    required this.statusCode,
-    required this.data,
+    required this.session,
+    required this.messages,
+    required this.pagination,
   });
 
-  factory PersonaChatModel.fromJson(Map<String, dynamic> json) {
-    return PersonaChatModel(
+  factory SessionChatModel.fromJson(Map<String, dynamic> json) {
+    return SessionChatModel(
       success: json['success'],
-      message: json['message'],
-      timestamp: DateTime.parse(json['timestamp']),
-      statusCode: json['status_code'],
-      data: Data.fromJson(json['data']),
+      session: Session.fromJson(json['session']),
+      messages: (json['messages'] as List).map((e) => Message.fromJson(e)).toList(),
+      pagination: Pagination.fromJson(json['pagination']),
     );
   }
 }
+
 
 class Data {
   final Session session;
@@ -48,11 +46,13 @@ class Message {
   final String sender;
   final String message;
   final DateTime timestamp;
+  final bool isSuggestion;
 
   Message({
     required this.sender,
     required this.message,
     required this.timestamp,
+    this.isSuggestion = false,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {

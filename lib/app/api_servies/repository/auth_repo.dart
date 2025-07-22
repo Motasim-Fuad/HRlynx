@@ -148,8 +148,8 @@ class AuthRepository {
     );
   }
 
-// ---------- home/chat ----------
-
+// ---------- home ----------
+      //---For Chat Start
   Future<dynamic> getAllAiPersona() async {
     String url = "${ApiConstants.baseUrl}/api/aipersona/personas/";
     return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
@@ -174,9 +174,9 @@ class AuthRepository {
       print('✅ Session creation response: $response');
 
       if (response != null &&
-          response['data'] != null &&
-          response['data']['session'] != null) {
-        return response['data']['session']['id']?.toString();
+          response['session'] != null &&
+          response['session']['id'] != null) {
+        return response['session']['id'].toString();
       } else {
         throw Exception('Invalid session response format');
       }
@@ -186,6 +186,25 @@ class AuthRepository {
     }
   }
 
+      //---For Chat end
+
+
+// ---------- chat ----------
+  Future<dynamic> AiSuggestions(int  personaId) async {
+    String url = "${ApiConstants.baseUrl}/api/chat/suggestions/?persona_id=$personaId";
+    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+  }
+
+  Future<dynamic> fetchPersonaChatHistory(int  personaId) async {
+    String url = "${ApiConstants.baseUrl}/api/chat/personas/$personaId/sessions/";
+    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+  }
+
+
+  Future<dynamic> fetchSessionsDetails(int  sessionId) async {
+    final url = "${ApiConstants.baseUrl}/api/chat/sessions/$sessionId/";
+    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+  }
 
 
 

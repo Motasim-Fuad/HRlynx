@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
 
 class InitScreen extends StatefulWidget {
   const InitScreen({super.key});
-
+ 
   @override
   State<InitScreen> createState() => _InitScreenState();
 }

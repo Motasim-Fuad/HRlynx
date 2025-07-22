@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../api_servies/api_Constant.dart';
+import '../../common_widgets/customtooltip.dart';
 import '../../utils/app_colors.dart';
 import 'chat_controller.dart';
 import '../../api_servies/webSocketServices.dart';
@@ -24,11 +25,12 @@ class ChatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatController = Get.find<ChatController>(tag: controllerTag); // use tagged controller
-
+    final tooltipCtrl = Get.put(ChatTooltipController());
     return Obx(() {
       final session = chatController.session.value;
+
       return Scaffold(
-        backgroundColor: Color(0xfff6e9e9),
+
         appBar: AppBar(
           title: session != null
               ? Builder(
@@ -53,20 +55,21 @@ class ChatView extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min, // 👈 Important to avoid height overflow
                       children: [
                         Text(
-                          session.persona.name,
+                          session.persona.name,  // Provide default value
                           style: TextStyle(
                             fontSize: nameFontSize,
                             fontWeight: FontWeight.w600,
                           ),
-                          overflow: TextOverflow.ellipsis, // 👈 Safe ellipsis
+                          overflow: TextOverflow.ellipsis,
                         ),
+
                         Text(
-                          session.persona.title,
+                          session.persona.title,  // Provide default value
                           style: TextStyle(
                             fontSize: titleFontSize,
                             color: Colors.grey[700],
                           ),
-                          overflow: TextOverflow.ellipsis, // 👈 Safe ellipsis
+                          overflow: TextOverflow.ellipsis,
                         ),
 
                       ],
@@ -97,6 +100,66 @@ class ChatView extends StatelessWidget {
 
         body: Column(
           children: [
+            Obx(() {
+              return Stack(
+                children: [
+                  // Chat layout
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Tappable "AI Guidance Only" text
+                      GestureDetector(
+                        onTap: tooltipCtrl.toggle,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "AI Guidance Only — Not Legal or HR Advice. Consult professionals for critical decisions.",textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              decoration: TextDecoration.underline,
+                              color: Colors.blueGrey[700],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Tooltip + outside tap detector
+                  if (tooltipCtrl.isVisible.value)
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: tooltipCtrl.hide, // tap anywhere outside to dismiss
+                      child: Container(
+                        color: Colors.transparent, // full screen tap detector
+                        child: Column(
+                          children: [
+                             SizedBox(height: MediaQuery.of(context).size.height * 0.05), // space from top
+                            Align(
+                              alignment: Alignment.center,
+                              child: ChatTooltipBubble(
+                                message:
+                                "AI-powered responses are provided for informational purposes only and do not constitute legal, compliance, or professional advice. Users should consult qualified HR, legal, or compliance professionals before making employment decisions. HRlynx AI Personas are not a substitute for independent judgment or expert consultation. Content may not reflect the most current regulatory or legal developments. Use of this platform is subject to the Terms of Use and Privacy Policy.",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
+
+            Obx(() {
+              return chatController.isLoadingSuggestions.value
+                  ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+                  : SizedBox.shrink();
+            }),
 
             // Container(
             //   child:  Row(
@@ -160,47 +223,100 @@ class ChatView extends StatelessWidget {
             //   ),
             // ),
 
+            // CustomTooltip(
+            // message: "AI-powered responses are provided for informational purposes only and do not constitute legal, compliance, or professional advice. Users should consult qualified HR, legal, or compliance professionals before making employment decisions. HRlynx AI Personas are not a substitute for independent judgment or expert consultation. Content may not reflect the most current regulatory or legal developments. Use of this platform is subject to the Terms of Use and Privacy Policy.",
+            //     child: Text("AI Guidance Only — Not Legal or HR Advice. Consult professionals for critical decisions.",textAlign: TextAlign.center,style: TextStyle(
+            //       decoration: TextDecoration.underline,
+            //       color: Colors.grey,
+            //       fontSize: 10,
+            //
+            //     ),),
+            // ),
 
 
-            TextButton(onPressed: (){
-              Get.snackbar(
-                        " ","AI-powered responses are provided for informational purposes only and do not constitute legal, compliance, or professional advice. Users should consult qualified HR, legal, or compliance professionals before making employment decisions. HRlynx AI Personas are not a substitute for independent judgment or expert consultation. Content may not reflect the most current regulatory or legal developments. Use of this platform is subject to the Terms of Use and Privacy Policy. "
-                      );
-            }, child: Text("AI Guidance Only — Not Legal or HR Advice. Consult professionals for critical decisions.",textAlign: TextAlign.center,style: TextStyle(
-              decoration: TextDecoration.underline,
-              color: Colors.grey,
-              fontSize: 10,
 
-            ),)
-            ),
+
+
+            // Add suggestions container here
 
             Expanded(
               child: Obx(() => ListView.builder(
                 reverse: false,
-                controller: chatController.scrollController, // 👈 use this
+                controller: chatController.scrollController,
                 itemCount: chatController.messages.length,
                 itemBuilder: (_, i) {
                   final message = chatController.messages[i];
                   final isMe = message.sender == 'me';
 
+                  // Special styling for suggestion messages
+                  if (message.isSuggestion) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundImage: session != null
+                                ? NetworkImage("${ApiConstants.baseUrl}${session.persona.avatar}")
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: (){
+                                    chatController.send(message.message);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: Colors.grey.shade300
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+
+                                        Text(
+                                          "${message.message}",
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          formatTime(message.timestamp),
+                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Regular message styling
                   return Container(
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    alignment: isMe
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
+                    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                     child: Row(
-                      mainAxisAlignment: isMe
-                          ? MainAxisAlignment.end
-                          : MainAxisAlignment.start,
+                      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (!isMe)
                           CircleAvatar(
                             radius: 18,
                             backgroundImage: session != null
-                                ? NetworkImage(
-                                "${ApiConstants.baseUrl}${session.persona.avatar}")
+                                ? NetworkImage("${ApiConstants.baseUrl}${session.persona.avatar}")
                                 : null,
                           ),
                         if (!isMe) const SizedBox(width: 8),
@@ -220,20 +336,112 @@ class ChatView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  formatTime(message.timestamp), // custom formatted time
+                                  formatTime(message.timestamp),
                                   style: const TextStyle(fontSize: 10, color: Colors.grey),
                                 ),
                               ],
                             ),
                           ),
                         ),
-
                       ],
                     ),
                   );
                 },
               )),
             ),
+
+
+            Obx(() {
+              if (chatController.isTyping.value) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundImage: NetworkImage(
+                          "${ApiConstants.baseUrl}${chatController.session.value?.persona.avatar ?? ''}",
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Typing...",
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return SizedBox.shrink();
+              }
+            }),
+
+
+            // Expanded(
+            //   child: Obx(() => ListView.builder(
+            //     reverse: false,
+            //     controller: chatController.scrollController, // 👈 use this
+            //     itemCount: chatController.messages.length,
+            //     itemBuilder: (_, i) {
+            //       final message = chatController.messages[i];
+            //       final isMe = message.sender == 'me';
+            //
+            //       return Container(
+            //         margin: const EdgeInsets.symmetric(
+            //             horizontal: 10, vertical: 6),
+            //         alignment: isMe
+            //             ? Alignment.centerRight
+            //             : Alignment.centerLeft,
+            //         child: Row(
+            //           mainAxisAlignment: isMe
+            //               ? MainAxisAlignment.end
+            //               : MainAxisAlignment.start,
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             if (!isMe)
+            //               CircleAvatar(
+            //                 radius: 18,
+            //                 backgroundImage: session != null
+            //                     ? NetworkImage(
+            //                     "${ApiConstants.baseUrl}${session.persona.avatar}")
+            //                     : null,
+            //               ),
+            //             if (!isMe) const SizedBox(width: 8),
+            //             Flexible(
+            //               child: Container(
+            //                 padding: const EdgeInsets.all(12),
+            //                 decoration: BoxDecoration(
+            //                   color: isMe ? Colors.blue[100] : Colors.grey[300],
+            //                   borderRadius: BorderRadius.circular(12),
+            //                 ),
+            //                 child: Column(
+            //                   crossAxisAlignment: CrossAxisAlignment.end,
+            //                   children: [
+            //                     Text(
+            //                       message.message,
+            //                       style: const TextStyle(fontSize: 15),
+            //                     ),
+            //                     const SizedBox(height: 4),
+            //                     Text(
+            //                       formatTime(message.timestamp), // custom formatted time
+            //                       style: const TextStyle(fontSize: 10, color: Colors.grey),
+            //                     ),
+            //                   ],
+            //                 ),
+            //               ),
+            //             ),
+            //
+            //           ],
+            //         ),
+            //       );
+            //     },
+            //   )),
+            // ),
+            // In your ChatView widget, add this above the message input field:
+
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.all(8.0),
