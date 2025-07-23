@@ -65,6 +65,31 @@ class TokenStorage {
   }
 
 
+  /// ===== STORE PERSONA SESSION ID  =====
+  static String _personaSessionKey(int personaId) => 'session_persona_$personaId';
+
+  static Future<void> savePersonaSessionId(int personaId, String sessionId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_personaSessionKey(personaId), sessionId);
+  }
+
+  static Future<String?> getPersonaSessionId(int personaId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_personaSessionKey(personaId));
+  }
+
+
+  static Future<bool> hasPersonaSession(int personaId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey(_personaSessionKey(personaId));
+  }
+
+  static Future<void> clearAllPersonaSessions() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (int id = 1; id <= 8; id++) {
+      await prefs.remove(_personaSessionKey(id));
+    }
+  }
 
   //Clear login token
 

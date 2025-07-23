@@ -1,129 +1,137 @@
-class SessionChatModel {
-  final bool success;
-  final Session session;
-  final List<Message> messages;
-  final Pagination pagination;
+class SessonChatHistoryModel {
+  bool? success;
+  Session? session;
+  List<Messages>? messages;
+  Pagination? pagination;
 
-  SessionChatModel({
-    required this.success,
-    required this.session,
-    required this.messages,
-    required this.pagination,
-  });
+  SessonChatHistoryModel(
+      {this.success, this.session, this.messages, this.pagination});
 
-  factory SessionChatModel.fromJson(Map<String, dynamic> json) {
-    return SessionChatModel(
-      success: json['success'],
-      session: Session.fromJson(json['session']),
-      messages: (json['messages'] as List).map((e) => Message.fromJson(e)).toList(),
-      pagination: Pagination.fromJson(json['pagination']),
-    );
+  SessonChatHistoryModel.fromJson(Map<String, dynamic> json) {
+    success = json['success'];
+    session =
+    json['session'] != null ? new Session.fromJson(json['session']) : null;
+    if (json['messages'] != null) {
+      messages = <Messages>[];
+      json['messages'].forEach((v) {
+        messages!.add(new Messages.fromJson(v));
+      });
+    }
+    pagination = json['pagination'] != null
+        ? new Pagination.fromJson(json['pagination'])
+        : null;
   }
-}
 
-
-class Data {
-  final Session session;
-  final List<Message> messages;
-  final Pagination pagination;
-
-  Data({
-    required this.session,
-    required this.messages,
-    required this.pagination,
-  });
-
-  factory Data.fromJson(Map<String, dynamic> json) {
-    return Data(
-      session: Session.fromJson(json['session']),
-      messages: (json['messages'] as List).map((e) => Message.fromJson(e)).toList(),
-      pagination: Pagination.fromJson(json['pagination']),
-    );
-  }
-}
-
-class Message {
-  final String sender;
-  final String message;
-  final DateTime timestamp;
-  final bool isSuggestion;
-
-  Message({
-    required this.sender,
-    required this.message,
-    required this.timestamp,
-    this.isSuggestion = false,
-  });
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      sender: json['sender'],
-      message: json['message'],
-      timestamp: DateTime.parse(json['timestamp']),
-    );
-  }
-}
-
-
-class Pagination {
-  final int page;
-  final int pageSize;
-  final bool hasMore;
-
-  Pagination({
-    required this.page,
-    required this.pageSize,
-    required this.hasMore,
-  });
-
-  factory Pagination.fromJson(Map<String, dynamic> json) {
-    return Pagination(
-      page: json['page'],
-      pageSize: json['page_size'],
-      hasMore: json['has_more'],
-    );
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['success'] = this.success;
+    if (this.session != null) {
+      data['session'] = this.session!.toJson();
+    }
+    if (this.messages != null) {
+      data['messages'] = this.messages!.map((v) => v.toJson()).toList();
+    }
+    if (this.pagination != null) {
+      data['pagination'] = this.pagination!.toJson();
+    }
+    return data;
   }
 }
 
 class Session {
-  final String id;
-  final String title;
-  final Persona persona;
+  String? id;
+  String? title;
+  Persona? persona;
 
-  Session({
-    required this.id,
-    required this.title,
-    required this.persona,
-  });
+  Session({this.id, this.title, this.persona});
 
-  factory Session.fromJson(Map<String, dynamic> json) {
-    return Session(
-      id: json['id'],
-      title: json['title'],
-      persona: Persona.fromJson(json['persona']),
-    );
+  Session.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+    persona =
+    json['persona'] != null ? new Persona.fromJson(json['persona']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['title'] = this.title;
+    if (this.persona != null) {
+      data['persona'] = this.persona!.toJson();
+    }
+    return data;
   }
 }
 
 class Persona {
-  final int id;
-  final String name;
-  final String title;
-  final String avatar;
+  int? id;
+  String? name;
+  String? title;
+  String? avatar;
 
-  Persona({
-    required this.id,
-    required this.name,
-    required this.title,
-    required this.avatar,
-  });
+  Persona({this.id, this.name, this.title, this.avatar});
 
-  factory Persona.fromJson(Map<String, dynamic> json) {
-    return Persona(
-      id: json['id'],
-      name: json['name'],
-      title: json['title'],
-      avatar: json['avatar'],
-    );
+  Persona.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    title = json['title'];
+    avatar = json['avatar'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['title'] = this.title;
+    data['avatar'] = this.avatar;
+    return data;
+  }
+}
+
+class Messages {
+  int? id;
+  String? content;
+  bool? isUser;
+  String? createdAt;
+
+  Messages({this.id, this.content, this.isUser, this.createdAt});
+
+  Messages.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    content = json['content'];
+    isUser = json['is_user'];
+    createdAt = json['created_at'];
+
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['content'] = this.content;
+    data['is_user'] = this.isUser;
+    data['created_at'] = this.createdAt;
+    return data;
+  }
+}
+
+class Pagination {
+  int? page;
+  int? pageSize;
+  bool? hasMore;
+
+  Pagination({this.page, this.pageSize, this.hasMore});
+
+  Pagination.fromJson(Map<String, dynamic> json) {
+    page = json['page'];
+    pageSize = json['page_size'];
+    hasMore = json['has_more'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['page'] = this.page;
+    data['page_size'] = this.pageSize;
+    data['has_more'] = this.hasMore;
+    return data;
   }
 }

@@ -1,3 +1,3 @@
 class ApiConstants {
-  static const String baseUrl = "https://memory-brandon-boost-trustees.trycloudflare.com";
+  static const String baseUrl = "https://mirror-magnet-expensive-specify.trycloudflare.com";
 }

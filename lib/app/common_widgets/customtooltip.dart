@@ -59,9 +59,9 @@ class _TooltipArrowPainter extends CustomPainter {
 
 
 class ChatTooltipController extends GetxController {
-  final isVisible = true.obs;
 
-  void show() => isVisible.value = true;
+  final isVisible = false.obs;
   void hide() => isVisible.value = false;
+  void show() => isVisible.value = true;
   void toggle() => isVisible.toggle();
 }

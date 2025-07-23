@@ -10,7 +10,10 @@ class SuggesionsModel {
   factory SuggesionsModel.fromJson(Map<String, dynamic> json) {
     return SuggesionsModel(
       success: json['success'] ?? false,
-      suggestions: List<String>.from(json['suggestions'] ?? []),
+      suggestions: (json['suggestions'] as List?)
+          ?.whereType<String>()
+          .toList() ??
+          [],
     );
   }
 }

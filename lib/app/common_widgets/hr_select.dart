@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class SelectableTile extends StatelessWidget {
@@ -34,11 +35,15 @@ class SelectableTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imageUrl,
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
                 height: 90,
                 width: 90,
                 fit: BoxFit.contain,
+                placeholder: (context, url) =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                errorWidget: (context, url, error) =>
+                const Icon(Icons.error, size: 90, color: Colors.redAccent),
               ),
             ),
             const SizedBox(width: 16),

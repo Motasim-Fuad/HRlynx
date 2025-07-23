@@ -1,4 +1,5 @@
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../common_widgets/customtooltip.dart';
@@ -207,18 +208,14 @@ class HomeView extends StatelessWidget {
                                 ),
                                 child: AspectRatio(
                                   aspectRatio: 1, // Keeps image square like in screenshot
-                                  child: Image.network(
-                                    "${persona.avatar}",
+                                  child:CachedNetworkImage(
+                                    imageUrl: "${persona.avatar}",
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    errorBuilder: (context, error, stackTrace) => const Center(
-                                      child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
-                                    ),
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Center(child: CircularProgressIndicator());
-                                    },
+                                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                                    errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 40, color: Colors.grey),
                                   ),
+
                                 ),
                               ),
                               Padding(

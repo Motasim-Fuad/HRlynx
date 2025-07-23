@@ -201,9 +201,18 @@ class AuthRepository {
   }
 
 
-  Future<dynamic> fetchSessionsDetails(int  sessionId) async {
+  Future<dynamic> fetchSessionsDetails(String sessionId) async {
     final url = "${ApiConstants.baseUrl}/api/chat/sessions/$sessionId/";
-    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+    print('🌐 Fetching session details for: $url');
+
+    try {
+      final response = await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+      print('✅ Session details response: $response');
+      return response;
+    } catch (e) {
+      print('❌ Error fetching session details: $e');
+      return null;
+    }
   }
 
 

@@ -16,6 +16,7 @@ class LogoutHelper {
     } finally {
       // Clear saved tokens
       await TokenStorage.clearLoginTokens();
+      await TokenStorage.clearAllPersonaSessions();
 
       // Navigate to login screen and remove all previous routes
       Get.offAll(() => LogInView());
