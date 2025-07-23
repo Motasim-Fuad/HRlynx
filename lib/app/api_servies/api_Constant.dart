@@ -1,3 +1,3 @@
 class ApiConstants {
-  static const String baseUrl = "https://mirror-magnet-expensive-specify.trycloudflare.com";
+  static const String baseUrl = "https://decide-remains-refers-arranged.trycloudflare.com";
 }

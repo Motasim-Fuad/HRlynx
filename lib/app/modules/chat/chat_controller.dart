@@ -20,10 +20,6 @@ class ChatController extends GetxController {
   var showSuggestions = true.obs; // controls suggestion list visibility
 
 
-
-
-
-
   final ScrollController scrollController = ScrollController();
 
   ChatController({
