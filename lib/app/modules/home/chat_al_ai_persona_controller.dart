@@ -45,12 +45,17 @@ class ChatAllAiPersona extends GetxController {
         // Step 2: Create new session via API
         sessionId = await authRepo.createSession(personaId) ?? (throw Exception('Failed to create session'));
 
+
+        print("🆕 ♻️♻️♻️♻️♻️♻️♻️NEW sessionId type: ${sessionId.runtimeType}, value: '$sessionId'");
+
         // Step 3: Save to SharedPreferences
         await TokenStorage.savePersonaSessionId(personaId, sessionId);
       } else {
         // Step 4: Use existing sessionId
         sessionId = sessionIdNullable;
         print("♻️ Reusing stored sessionId for persona $personaId: $sessionId");
+
+        print("♻️♻️♻️♻️♻️♻️️️STORED sessionId type: ${sessionId.runtimeType}, value: '$sessionId'");
       }
 
       // Step 5: Initialize WebSocket

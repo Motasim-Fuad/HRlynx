@@ -76,7 +76,7 @@ class ChatController extends GetxController {
       messages.assignAll(model.messages ?? []);
       scrollToBottom();
     } catch (e) {
-      print("❌ Failed to fetch session details: $e");
+      print("❌ ❌❌❌❌❌ Failed to fetch session details: $e");
     }
   }
 

@@ -201,7 +201,7 @@ class AuthRepository {
   }
 
 
-  Future<dynamic> fetchSessionsDetails(String sessionId) async {
+  Future<dynamic> fetchSessionsDetails(String sessionId) async {  // 👈 CHANGE TO STRING
     final url = "${ApiConstants.baseUrl}/api/chat/sessions/$sessionId/";
     print('🌐 Fetching session details for: $url');
 
@@ -210,7 +210,7 @@ class AuthRepository {
       print('✅ Session details response: $response');
       return response;
     } catch (e) {
-      print('❌ Error fetching session details: $e');
+      print('❌❌❌❌❌❌❌❌ Error fetching session details: $e');
       return null;
     }
   }
