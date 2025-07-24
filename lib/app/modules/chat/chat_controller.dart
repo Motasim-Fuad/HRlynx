@@ -63,22 +63,49 @@ class ChatController extends GetxController {
   }
 
 
-
-
-
+  int? get sessionIdAsInt {
+    if (sessionId is int) return sessionId as int;
+    if (sessionId is String) return int.tryParse(sessionId as String);
+    return null;
+  }
 
   Future<void> fetchSessionDetails() async {
     try {
-      final response = await AuthRepository().fetchSessionsDetails(sessionId);
-      final model = SessonChatHistoryModel.fromJson(response);
+      final sessionIdInt = sessionIdAsInt;
+      if (sessionIdInt == null) {
+        print("❌ Invalid session ID: cannot convert '$sessionId' to integer");
+        return;
+      }
 
+      print("given auth  session id  :    .......................$sessionIdInt");
+      print("given auth  session id  :    .......................$sessionId");
+      print("fuad1");
+      final response = await AuthRepository().fetchSessionsDetails(sessionIdInt);
+      print("fuad2");
+      final model = SessonChatHistoryModel.fromJson(response);
+      print("fuad3");
       session.value = model.session;
-      messages.assignAll(model.messages ?? []);
+      print("fuad4");
+      messages.assignAll(model.messages ?? []);////////
+      print("fuad5");
       scrollToBottom();
     } catch (e) {
-      print("❌ ❌❌❌❌❌ Failed to fetch session details: $e");
+      print("❌ Failed to fetch session details: $e");
     }
   }
+
+  // Future<void> fetchSessionDetails() async {
+  //   try {
+  //     final response = await AuthRepository().fetchSessionsDetails(sessionId as int);
+  //     final model = SessonChatHistoryModel.fromJson(response);
+  //
+  //     session.value = model.session;
+  //     messages.assignAll(model.messages ?? []);
+  //     scrollToBottom();
+  //   } catch (e) {
+  //     print("❌ ❌❌❌❌❌ Failed to fetch session details: $e");
+  //   }
+  // }
 
   Future<void> fetchSuggestions(int personaId) async {
     try {

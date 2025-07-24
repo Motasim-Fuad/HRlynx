@@ -238,46 +238,46 @@ class ChatView extends StatelessWidget {
               if (chatController.showSuggestions.value &&
                   chatController.suggestions.isNotEmpty) {
                 return Container(
-                  height: 180, // Adjust height as needed
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListView.builder( // Changed from ListView.separated to ListView.builder
-                    itemCount: chatController.suggestions.length,
-                    itemBuilder: (_, index) {
-                      final suggestion = chatController.suggestions[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2), // Add some spacing between items
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300], // Grey background color
-                          borderRadius: BorderRadius.circular(8), // Rounded corners
-                        ),
-                        child: GestureDetector(
-                          child: Text(
-                            suggestion,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, // Align to left
+                      children: chatController.suggestions.map((suggestion) {
+                        return GestureDetector(
                           onTap: () {
                             textController.text = suggestion;
                             chatController.showSuggestions.value = false;
-                            // Move cursor to end
                             textController.selection = TextSelection.fromPosition(
                               TextPosition(offset: textController.text.length),
                             );
                           },
-                        ),
-                      );
-                    },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              suggestion,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 );
               } else {
                 return const SizedBox.shrink();
               }
             }),
+
+
             const Divider(height: 1),
 
             // Input field + send button
@@ -305,19 +305,9 @@ class ChatView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // IconButton(
-                  //   icon: Obx(() => Icon(
-                  //     chatController.isListening.value ? Icons.mic : Icons.mic_none,
-                  //     color: chatController.isListening.value ? Colors.red : null,
-                  //   )),
-                  //   onPressed: () {
-                  //     if (chatController.isListening.value) {
-                  //       chatController.stopListening(textController);
-                  //     } else {
-                  //       chatController.startListening(textController);
-                  //     }
-                  //   },
-                  // ),
+                  IconButton(onPressed: (){
+
+                  }, icon: Icon(Icons.mic)),
                   IconButton(
                     icon: const Icon(Icons.send),
                     onPressed: () {

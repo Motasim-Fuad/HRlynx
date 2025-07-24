@@ -201,15 +201,23 @@ class AuthRepository {
   }
 
 
-  Future<dynamic> fetchSessionsDetails(String sessionId) async {  // 👈 CHANGE TO STRING
+  Future<dynamic> fetchSessionsDetails(int sessionId) async {  // 👈 CHANGE TO STRING
+    print("fuadAuth1");
     final url = "${ApiConstants.baseUrl}/api/chat/sessions/$sessionId/";
+    print("fuadAuth2");
     print('🌐 Fetching session details for: $url');
+    print("fuadAuth3");
 
     try {
+      print("fuadAuth4");
       final response = await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
+      print("fuadAuth5");
       print('✅ Session details response: $response');
+      print("fuadAuth6$response");
       return response;
+
     } catch (e) {
+      print("fuadAuth7");
       print('❌❌❌❌❌❌❌❌ Error fetching session details: $e');
       return null;
     }

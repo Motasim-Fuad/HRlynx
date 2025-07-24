@@ -18,7 +18,7 @@ class WebSocketService {
       print('Connecting to WebSocket: $uri');
       _channel = WebSocketChannel.connect(uri);
       _isConnected.value = true;
-
+      print('✅ WebSocket Connected');
       _broadcastStream = _channel!.stream.asBroadcastStream()
         ..listen(
               (event) => print('📥 Incoming: $event'),
