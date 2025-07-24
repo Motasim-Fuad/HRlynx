@@ -1,5 +1,6 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:damaged303/app/utils/my%20spech.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../common_widgets/customtooltip.dart';
@@ -35,10 +36,6 @@ class HomeView extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none_outlined, size: 30),
-          ),
 
 
         ],

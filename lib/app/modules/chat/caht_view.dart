@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:damaged303/app/modules/home/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../api_servies/api_Constant.dart';
+import '../../api_servies/repository/auth_repo.dart';
+import '../../api_servies/token.dart';
 import '../../common_widgets/customtooltip.dart';
 import '../../model/chat/session_chat_model.dart';
 import '../../utils/app_colors.dart';
@@ -38,6 +41,23 @@ class ChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+// Add safety check for controller existence
+    if (!Get.isRegistered<ChatController>(tag: controllerTag)) {
+      print('Initializing new ChatController with tag: $controllerTag');
+      Get.put(
+        ChatController(
+          wsService: webSocketService,
+          sessionId: sessionId,
+          personaId: webSocketService.personaId ?? 0, // Add personaId to WebSocketService
+        ),
+        tag: controllerTag,
+        permanent: true,
+      );
+    }
+
+
+
     final chatController = Get.find<ChatController>(tag: controllerTag);
     final tooltipCtrl = Get.put(ChatTooltipController());
 
@@ -46,6 +66,10 @@ class ChatView extends StatelessWidget {
 
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(onPressed: (){
+            Get.off(HomeView());
+          }, icon: Icon(Icons.arrow_back)),
           title: session != null
               ? Row(
             children: [
@@ -234,11 +258,11 @@ class ChatView extends StatelessWidget {
                 return const SizedBox.shrink();
               }
             }),
+
             Obx(() {
               if (chatController.showSuggestions.value &&
                   chatController.suggestions.isNotEmpty) {
                 return Container(
-
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
                   child: SingleChildScrollView(
                     child: Column(
@@ -276,7 +300,6 @@ class ChatView extends StatelessWidget {
                 return const SizedBox.shrink();
               }
             }),
-
 
             const Divider(height: 1),
 
@@ -332,29 +355,17 @@ class ChatView extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Get.back();
-                        },
-                        child: const Icon(Icons.close, color: Colors.white),
-                      ),
-                      const SizedBox(width: 20),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                  // ✅ FIXED: Single "New chat" button with proper implementation
                   Padding(
-                    padding: const EdgeInsets.only(left: 20),
+                    padding: const EdgeInsets.only(left: 20, right: 20),
                     child: GestureDetector(
-                      onTap: () {
-                        print('while backend we will implement this');
+                      onTap: () async {
+                        await _createNewChatSession();
                       },
                       child: Row(
                         children: const [
                           Icon(Icons.edit_note_rounded, color: Colors.white),
-                          SizedBox(width: 3),
+                          SizedBox(width: 8),
                           Text(
                             'New chat',
                             style: TextStyle(
@@ -367,17 +378,18 @@ class ChatView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
                     child: GestureDetector(
                       onTap: () {
-                        // Get.to(ChatHistory());
+                        Get.back(); // Close drawer
+                        // Get.to(ChatHistory()); // Navigate to history if needed
                       },
                       child: Row(
                         children: const [
                           Icon(Icons.access_time_outlined, color: Colors.white),
-                          SizedBox(width: 3),
+                          SizedBox(width: 8),
                           Text(
                             'History',
                             style: TextStyle(
@@ -397,6 +409,80 @@ class ChatView extends StatelessWidget {
         ),
       );
     });
+  }
+
+  // ✅ FIXED: Extracted new chat creation logic into separate method
+// Replace your _createNewChatSession method with this corrected version:
+// Replace your _createNewChatSession method with this corrected version:
+
+  Future<void> _createNewChatSession() async {
+    final chatController = Get.find<ChatController>(tag: controllerTag);
+    final currentPersonaId = chatController.personaId;
+
+    try {
+      // Close drawer first
+      Get.back();
+
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // Create new session
+      final newSessionId = await AuthRepository().createSession(currentPersonaId);
+
+      if (newSessionId != null) {
+        // Save the new session ID
+        await TokenStorage.savePersonaSessionId(currentPersonaId, newSessionId);
+
+        final token = await TokenStorage.getLoginAccessToken() ?? '';
+
+        // Create new WebSocket service and controller tag
+        final newWebSocket = WebSocketService();
+        final newControllerTag = 'chat-$newSessionId-${DateTime.now().millisecondsSinceEpoch}';
+
+        // Connect WebSocket
+        await newWebSocket.connect(newSessionId, token, personaId: currentPersonaId);
+
+        // Create new controller
+        final newController = ChatController(
+          wsService: newWebSocket,
+          sessionId: newSessionId,
+          personaId: currentPersonaId,
+        );
+
+        // Put the new controller in GetX
+        Get.put(newController, tag: newControllerTag, permanent: true);
+
+        // Close loading dialog
+        Get.back();
+
+        // Navigate to new chat view
+        Get.offAll(() => ChatView(
+          sessionId: newSessionId,
+          token: token,
+          webSocketService: newWebSocket,
+          controllerTag: newControllerTag,
+        ));
+
+        // Delay cleanup of old controller
+        Future.delayed(const Duration(seconds: 1), () {
+          if (Get.isRegistered<ChatController>(tag: controllerTag)) {
+            final oldController = Get.find<ChatController>(tag: controllerTag);
+            oldController.onClose();
+            Get.delete<ChatController>(tag: controllerTag);
+          }
+        });
+      } else {
+        Get.back();
+        Get.snackbar("Error", "Failed to create a new chat session.");
+      }
+    } catch (e) {
+      Get.back();
+      Get.snackbar("Error", "Error creating new session: $e");
+      print("Error in _createNewChatSession: $e");
+    }
   }
 
   String formatTime(DateTime? time) {

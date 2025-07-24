@@ -21,13 +21,6 @@ class ChatAllAiPersona extends GetxController {
     super.onInit();
   }
 
-
-
-
-
-
-
-
   Future<void> startChatSession(Data persona) async {
     try {
       final personaId = persona.id!;
