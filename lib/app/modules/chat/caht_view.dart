@@ -259,19 +259,22 @@ class ChatView extends StatelessWidget {
               }
             }),
 
+            // In your ChatView's build method, modify the Obx widget for suggestions:
             Obx(() {
-              if (chatController.showSuggestions.value &&
+              if ((chatController.isFirstTime.value || chatController.showSuggestions.value) &&
                   chatController.suggestions.isNotEmpty) {
                 return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
+                  alignment: AlignmentDirectional(-0.8, 1),
                   child: SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // Align to left
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: chatController.suggestions.map((suggestion) {
                         return GestureDetector(
                           onTap: () {
                             textController.text = suggestion;
                             chatController.showSuggestions.value = false;
+                            chatController.isFirstTime.value = false; // Mark as not first time anymore
                             textController.selection = TextSelection.fromPosition(
                               TextPosition(offset: textController.text.length),
                             );
@@ -285,10 +288,7 @@ class ChatView extends StatelessWidget {
                             ),
                             child: Text(
                               suggestion,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: const TextStyle(color: Colors.black),
                             ),
                           ),
                         );
@@ -320,10 +320,7 @@ class ChatView extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                       ),
                       onTap: () {
-                        // Show suggestions again when input is tapped if any
-                        if (chatController.suggestions.isNotEmpty) {
-                          chatController.showSuggestions.value = true;
-                        }
+
                       },
                     ),
                   ),
@@ -339,6 +336,7 @@ class ChatView extends StatelessWidget {
                         chatController.send(text);
                         textController.clear();
                         chatController.showSuggestions.value = false; // hide suggestions after send
+                        chatController.isFirstTime.value = false;
                       }
                     },
                   ),
@@ -450,8 +448,9 @@ class ChatView extends StatelessWidget {
           wsService: newWebSocket,
           sessionId: newSessionId,
           personaId: currentPersonaId,
+          isNewSession: true,
         );
-
+        newController.isFirstTime.value = true;
         // Put the new controller in GetX
         Get.put(newController, tag: newControllerTag, permanent: true);
 

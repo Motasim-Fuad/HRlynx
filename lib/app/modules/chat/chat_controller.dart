@@ -19,6 +19,9 @@ class ChatController extends GetxController {
   final suggestions = <String>[].obs;
   var isLoadingSuggestions = false.obs;
   var showSuggestions = true.obs;
+  var isFirstTime = true.obs;
+
+  final bool isNewSession;
 
   final ScrollController scrollController = ScrollController();
 
@@ -26,6 +29,7 @@ class ChatController extends GetxController {
     required this.wsService,
     required this.sessionId,
     required this.personaId,
+    this.isNewSession = false,
   });
 
   @override
@@ -215,9 +219,14 @@ class ChatController extends GetxController {
       print("❌ Failed to fetch session details: $e");
     }
   }
-
   Future<void> fetchSuggestions(int personaId) async {
     try {
+      // Only fetch suggestions for new sessions
+      if (!isNewSession) {
+        showSuggestions.value = false;
+        return;
+      }
+
       isLoadingSuggestions.value = true;
       final response = await AuthRepository().AiSuggestions(personaId);
 
@@ -227,14 +236,11 @@ class ChatController extends GetxController {
         if (model.success) {
           suggestions.assignAll(model.suggestions);
           showSuggestions.value = suggestions.isNotEmpty;
-          print('✅ Suggestions loaded: ${model.suggestions.length}');
         } else {
-          print("❌ Suggestions model.success == false");
           suggestions.clear();
           showSuggestions.value = false;
         }
       } else {
-        print("❌ Suggestions API returned null");
         suggestions.clear();
         showSuggestions.value = false;
       }
