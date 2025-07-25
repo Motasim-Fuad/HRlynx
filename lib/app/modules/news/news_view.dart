@@ -139,21 +139,21 @@ class NewsView extends StatelessWidget {
             SizedBox(height: 20,),
 
             // Selected Tag Chip (if any)
-            Obx(() => controller.selectedTag.value != null
-                ? Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                children: [
-                  Chip(
-                    label: Text(controller.selectedTag.value!['name'] ?? ''),
-                    onDeleted: () {
-                      controller.clearTagFilter();
-                    },
-                  ),
-                ],
-              ),
-            )
-                : SizedBox.shrink()),
+            // Obx(() => controller.selectedTag.value != null
+            //     ? Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            //   child: Row(
+            //     children: [
+            //       Chip(
+            //         label: Text(controller.selectedTag.value!['name'] ?? ''),
+            //         onDeleted: () {
+            //           controller.clearTagFilter();
+            //         },
+            //       ),
+            //     ],
+            //   ),
+            // )
+            //     : SizedBox.shrink()),
 
             // Articles List
             Expanded(
@@ -220,6 +220,7 @@ class NewsView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Tags
+                          // Replace your existing tags code with this:
                           if (tags.isNotEmpty)
                             Container(
                               width: double.infinity,
@@ -227,41 +228,30 @@ class NewsView extends StatelessWidget {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: tags.take(2).map<Widget>((tag) {
-                                  final isFirst = tags.indexOf(tag) == 0;
+                                  final isSelected = controller.selectedTag.value?['id'] == tag['id'];
+                                  final tagName = tag['name']?.toString() ?? '';
+                                  final capitalizedTagName = tagName.isNotEmpty
+                                      ? tagName[0].toUpperCase() + tagName.substring(1).toLowerCase()
+                                      : '';
+
                                   return GestureDetector(
                                     onTap: () => controller.filterByTag(tag),
                                     child: Container(
-                                      height: 32,
-                                      constraints: BoxConstraints(
-                                        maxWidth: MediaQuery.of(context).size.width * 0.4,
-                                      ),
+                                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4), // Reduced padding
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: isFirst
-                                            ? AppColors.primarycolor
-                                            : Colors.transparent,
-                                        border: isFirst
-                                            ? null
-                                            : Border.all(
-                                          color: Color(0xFFE6ECEB),
+                                        borderRadius: BorderRadius.circular(16), // More rounded corners
+                                        color: isSelected ? AppColors.primarycolor : Colors.white,
+                                        border: Border.all(
+                                          color: isSelected ? AppColors.primarycolor : Color(0xFFE6ECEB),
                                           width: 1,
                                         ),
                                       ),
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                          child: Text(
-                                            tag['name'] ?? '',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 12,
-                                              color: isFirst
-                                                  ? Color(0xFFE6E6E6)
-                                                  : Color(0xFF050505),
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
+                                      child: Text(
+                                        capitalizedTagName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 12,
+                                          color: isSelected ? Colors.white : Color(0xFF050505),
                                         ),
                                       ),
                                     ),
