@@ -357,7 +357,7 @@ class ChatView extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20),
                   Container(
-                    color: Colors.grey.shade700,
+                    color: Colors.teal.shade900,
                     child: ListTile(
                       style: ListTileStyle.list,
                       title: Text("New Chat", style: TextStyle(color: Colors.white)),
@@ -367,16 +367,16 @@ class ChatView extends StatelessWidget {
                       },
                     ),
                   ),
-                  const SizedBox(height: 20),
                   Expanded(
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(3),
                           child: Row(
                             children: [
-                              Icon(Icons.history,color: Colors.white,),
                               SizedBox(width: 10,),
+                              Icon(Icons.history,color: Colors.white,),
+                              SizedBox(width: 20,),
                               Text(
                                 "History",
                                 textAlign: TextAlign.center,
@@ -384,7 +384,6 @@ class ChatView extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               ),
-
                               Spacer(),
                               // In your ChatView widget, replace the IconButton in the history section with this:
                               Obx(() {
@@ -398,9 +397,9 @@ class ChatView extends StatelessWidget {
                                         curve: Curves.linear,
                                       ),
                                     ),
-                                    child: const Icon(Icons.refresh),
+                                    child: const Icon(Icons.refresh,color: Colors.white,),
                                   )
-                                      : const Icon(Icons.refresh),
+                                      : const Icon(Icons.refresh,color: Colors.white,),
                                   onPressed: () async {
                                     if (!chatController.isReloadingHistory.value) {
                                       // Start animation
@@ -448,11 +447,16 @@ class ChatView extends StatelessWidget {
                                   final session = sessions[index];
                                   return SessionHistoryTile(
                                     session: session,
-                                    personaAvatar: "${ApiConstants.baseUrl}${data['persona']['avatar']}",
-                                    onTap: () => _loadSession(session.id.toString()),
+                                    onTap: () => _loadSession(session.id), // FIXED: Pass as int
+                                    onDelete: () async {
+                                      await _deleteHistory(int.parse(session.id));// Still int
+                                      sessions.removeAt(index);
+                                      (context as Element).markNeedsBuild(); // Rebuild
+                                    },
                                   );
                                 },
                               );
+
                             },
                           ),
                         ),
@@ -467,6 +471,34 @@ class ChatView extends StatelessWidget {
       );
     });
   }
+
+
+  Future<void> _deleteHistory(int sessionId) async {
+    try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      final result = await AuthRepository().deleteHistory(sessionId);
+
+      Get.back(); // Close loading dialog
+
+      if (result != null && result['success'] == true) {
+        Get.snackbar("Deleted", "Session has been deleted successfully",
+            snackPosition: SnackPosition.BOTTOM);
+      } else {
+        Get.snackbar("Error", "Failed to delete session",
+            snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.back();
+      Get.snackbar("Error", "An error occurred while deleting: $e",
+          snackPosition: SnackPosition.BOTTOM);
+      print("Delete error: $e");
+    }
+  }
+
 
   // ✅ FIXED: Extracted new chat creation logic into separate method
 // Replace your _createNewChatSession method with this corrected version:

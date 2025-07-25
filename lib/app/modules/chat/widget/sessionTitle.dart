@@ -6,44 +6,85 @@ import '../../../model/chat/sessionHistoryModel.dart';
 
 class SessionHistoryTile extends StatelessWidget {
   final SessionHistory session;
-  final String personaAvatar;
   final VoidCallback onTap;
+  final VoidCallback? onDelete; // Add delete callback
 
   const SessionHistoryTile({
     required this.session,
-    required this.personaAvatar,
     required this.onTap,
+    this.onDelete, // Optional delete callback
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: CachedNetworkImageProvider(personaAvatar),
+    return Dismissible(
+      key: Key('session_${session.id}'), // Unique key for each session
+      direction: DismissDirection.endToStart, // Swipe from right to left
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        color: Colors.red,
+        child: Icon(
+          Icons.delete,
+          color: Colors.white,
+          size: 28,
+        ),
       ),
-      title: Text(
-        session.title,
-        style: TextStyle(color: Colors.white),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (session.lastMessage != null)
+      confirmDismiss: (direction) async {
+        // Show confirmation dialog
+        return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Delete Chat'),
+              content: Text('Are you sure you want to delete this chat session? This action cannot be undone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                  ),
+                  child: Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ?? false; // Return false if dialog is dismissed
+      },
+      onDismissed: (direction) {
+        // Call the delete callback if provided
+        if (onDelete != null) {
+          onDelete!();
+        }
+      },
+      child: ListTile(
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (session.lastMessage != null)
+              Text(
+                session.lastMessage!.content,
+                style: TextStyle(color: Colors.white70),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             Text(
-              session.lastMessage!.content,
-              style: TextStyle(color: Colors.white70),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              '${session.messageCount} messages • ${formatDate(session.updatedAt)}',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
             ),
-          Text(
-            '${session.messageCount} messages • ${formatDate(session.updatedAt)}',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
-          ),
-        ],
+          ],
+        ),
+        onTap: onTap,
+        trailing: Icon(
+          Icons.swipe_left,
+          color: Colors.white54,
+          size: 16,
+        ), // Visual hint for swipe action
       ),
-      onTap: onTap,
     );
   }
 

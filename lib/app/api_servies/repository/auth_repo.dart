@@ -224,5 +224,12 @@ class AuthRepository {
   }
 
 
+  Future<dynamic> deleteHistory(int  session_id) async {
+    String url = "${ApiConstants.baseUrl}/api/chat/sessions/${session_id}/delete/";
+    return await NetworkApiServices.deleteApi(url, withAuth: true, tokenType: 'login');
+  }
+
+
+
 
 }

@@ -1,24 +1,24 @@
 import 'package:damaged303/app/modules/main_screen/main_screen_controller.dart';
-import 'package:damaged303/app/modules/news/news_model.dart';
-import 'package:damaged303/app/modules/news_details/news_details_view.dart';
+import 'package:damaged303/app/modules/news/news_controller.dart';
 import 'package:damaged303/app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'news_detail/news_detail_page_view.dart';
 
 class NewsView extends StatelessWidget {
   const NewsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final newsList = newsdescritiondetail().newsdescriptions;
+    final NewsController controller = Get.put(NewsController());
+
     return Scaffold(
       appBar: AppBar(
         leading: GestureDetector(
           onTap: () {
             Get.put<BottomNavController>(BottomNavController()).changeTab(0);
             Get.back();
-
-            print('news back');
           },
           child: Icon(Icons.arrow_back),
         ),
@@ -38,218 +38,372 @@ class NewsView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: controller.refreshData,
         child: Column(
           children: [
+            // Search Bar
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
               child: Container(
-                //margin: EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    icon: Icon(Icons.search),
-                    hintText: 'Search News',
-                  ),
-                ),
                 height: 45,
                 decoration: BoxDecoration(
                   border: Border.all(width: 1, color: Color(0xFFB0C3C2)),
                   borderRadius: BorderRadius.circular(6),
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Container(
-                    height: 45,
-                    width: Get.width * 0.5,
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 1, color: Color(0xFFB0C3C2)),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value:
-                            null, // You can manage selected value with a state variable if needed
-                        hint: Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Text('Select a category'),
-                        ),
-                        items: NewsModel().newsCategories
-                            .map(
-                              (cat) => DropdownMenuItem<String>(
-                                value: cat.category,
-                                child: Text(cat.category),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          // Handle category selection here
-                        },
-                      ),
+                child: TextFormField(
+                  controller: controller.searchController,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search News',
+                    suffixIcon: Obx(() =>
+                    controller.searchText.value.isNotEmpty
+                        ? IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        controller.searchController.clear();
+                        controller.loadArticles(refresh: true);
+                      },
+                    )
+                        : SizedBox.shrink(),
                     ),
                   ),
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      controller.loadArticles(refresh: true);
+                    }
+                  },
+                  onFieldSubmitted: (value) {
+                    controller.searchArticles(value);
+                  },
                 ),
-              ],
+              ),
             ),
-            SizedBox(height: 10),
+
+            SizedBox(height: 20),
+
+            // Category Dropdown
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20),
-              child: ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: newsList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final tags = newsList[index].tags;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 40,
-                            width: Get.width * .25,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Obx(() => Container(
+                height: 45,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Color(0xFFB0C3C2)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<Map<String, dynamic>?>(
+                    isExpanded: true,
+                    value: controller.selectedCategory.value,
+                    hint: Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Text('Select a category'),
+                    ),
+                    items: [
+                      DropdownMenuItem<Map<String, dynamic>?>(
+                        value: null,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text('All Categories'),
+                        ),
+                      ),
+                      ...controller.categories.map<DropdownMenuItem<Map<String, dynamic>?>>(
+                            (category) => DropdownMenuItem<Map<String, dynamic>?>(
+                          value: category,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text(
+                              category['name'] ?? '',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ).toList(),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) {
+                        controller.clearCategoryFilter();
+                      } else {
+                        controller.filterByCategory(value);
+                      }
+                    },
+                  ),
+                ),
+              )),
+            ),
+
+
+            SizedBox(height: 20,),
+
+            // Selected Tag Chip (if any)
+            Obx(() => controller.selectedTag.value != null
+                ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                children: [
+                  Chip(
+                    label: Text(controller.selectedTag.value!['name'] ?? ''),
+                    onDeleted: () {
+                      controller.clearTagFilter();
+                    },
+                  ),
+                ],
+              ),
+            )
+                : SizedBox.shrink()),
+
+            // Articles List
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value && controller.articles.isEmpty) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primarycolor,
+                    ),
+                  );
+                }
+
+                if (controller.articles.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.article_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No articles found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (!controller.isLoadingMore.value &&
+                        controller.hasNextPage.value &&
+                        scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                      controller.loadMoreArticles();
+                    }
+                    return false;
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: controller.articles.length + (controller.hasNextPage.value ? 1 : 0),
+                    itemBuilder: (BuildContext context, int index) {
+                      if (index == controller.articles.length) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
                               color: AppColors.primarycolor,
                             ),
-                            child: Center(
-                              child: Text(
-                                tags.first,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  color: Color(0xFFE6E6E6),
-                                ),
-                              ),
-                            ),
                           ),
-                          SizedBox(width: 8),
-                          Container(
-                            height: 40,
-                            width: Get.width * .25,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Color(0xFFE6ECEB),
-                                width: 1,
+                        );
+                      }
+
+                      final article = controller.articles[index];
+                      final tags = article['tags'] ?? [];
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Tags
+                          if (tags.isNotEmpty)
+                            Container(
+                              width: double.infinity,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: tags.take(2).map<Widget>((tag) {
+                                  final isFirst = tags.indexOf(tag) == 0;
+                                  return GestureDetector(
+                                    onTap: () => controller.filterByTag(tag),
+                                    child: Container(
+                                      height: 32,
+                                      constraints: BoxConstraints(
+                                        maxWidth: MediaQuery.of(context).size.width * 0.4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: isFirst
+                                            ? AppColors.primarycolor
+                                            : Colors.transparent,
+                                        border: isFirst
+                                            ? null
+                                            : Border.all(
+                                          color: Color(0xFFE6ECEB),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                          child: Text(
+                                            tag['name'] ?? '',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12,
+                                              color: isFirst
+                                                  ? Color(0xFFE6E6E6)
+                                                  : Color(0xFF050505),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
-                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Center(
-                              child: Text(
-                                tags.last,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  color: Color(0xFF050505),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () {
-                          Get.to(
-                            NewsDetailsView(
-                              tags: tags,
-                              headline: newsList[index].headline,
-                              description: newsList[index].description,
-                              img: newsList[index].image,
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                newsList[index].image,
-                                height: 130,
-                                width: 83,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            SizedBox(width: 5),
-                            Expanded(
-                              child: Column(
+
+                          SizedBox(height: 10),
+
+                          // Article Content
+                          GestureDetector(
+                            onTap: () {
+                              if (article['id'] != null) {
+                                Get.to(
+                                  NewsDetailsView(articleId: article['id']),
+                                );
+                              } else {
+                                // Fallback if ID is missing (shouldn't happen with your API)
+                                Get.to(
+                                  NewsDetailsView(
+                                    articleId: 0, // Provide default
+                                  ),
+                                );
+                                Get.snackbar('Error', 'Article ID missing');
+                              }
+                            },
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    newsList[index].headline,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18,
-                                      color: Color(0xFF1B1E28),
+                                  // Article Image
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: article['main_image_url'] != null
+                                        ? Image.network(
+                                      article['main_image_url'],
+                                      height: 100,
+                                      width: 80,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          height: 100,
+                                          width: 80,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[300],
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            Icons.image_not_supported,
+                                            color: Colors.grey[600],
+                                          ),
+                                        );
+                                      },
+                                    )
+                                        : Container(
+                                      height: 100,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.article,
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
                                   ),
-                                  SizedBox(height: 10),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Get.to(
-                                        NewsDetailsView(
-                                          tags: tags,
-                                          headline: newsList[index].headline,
-                                          description:
-                                              newsList[index].description,
-                                          img: newsList[index].image,
+
+                                  SizedBox(width: 12),
+
+                                  // Article Text Content
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          article['ai_title'] ?? '',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                            color: Color(0xFF1B1E28),
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 3,
-                                      newsList[index].description,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16,
-                                        color: Color(0xFF7D848D),
-                                      ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          article['ai_summary'] ?? '',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 14,
+                                            color: Color(0xFF7D848D),
+                                          ),
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Divider(height: 1, color: Color(0xffE6ECEB)),
-                      SizedBox(height: 2),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '2h ago',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12,
-                              color: Color(0xff7D848D),
-                            ),
                           ),
-                          Text(
-                            '3min',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12,
-                              color: Color(0xff7D848D),
-                            ),
-                          ),
-                        ],
-                      ),
 
-                      SizedBox(height: 30),
-                    ],
-                  );
-                },
-              ),
+                          SizedBox(height: 10),
+                          Divider(height: 1, color: Color(0xffE6ECEB)),
+                          SizedBox(height: 8),
+
+                          // Time and Reading Duration
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  controller.formatPublishedDate(article['published_date']),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12,
+                                    color: Color(0xff7D848D),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '3min',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 12,
+                                  color: Color(0xff7D848D),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 20),
+                        ],
+                      );
+                    },
+                  ),
+                );
+              }),
             ),
           ],
         ),
