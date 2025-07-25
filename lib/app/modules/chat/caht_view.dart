@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:damaged303/app/modules/chat/widget/sessionTitle.dart';
 import 'package:damaged303/app/modules/home/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,8 +9,9 @@ import '../../api_servies/api_Constant.dart';
 import '../../api_servies/repository/auth_repo.dart';
 import '../../api_servies/token.dart';
 import '../../common_widgets/customtooltip.dart';
-import '../../model/chat/session_chat_model.dart';
+import '../../model/chat/sessionHistoryModel.dart';
 import '../../utils/app_colors.dart';
+import '../main_screen/main_screen_view.dart';
 import 'chat_controller.dart';
 import '../../api_servies/webSocketServices.dart';
 
@@ -68,7 +70,7 @@ class ChatView extends StatelessWidget {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: IconButton(onPressed: (){
-            Get.off(HomeView());
+            Get.off(MainScreen());
           }, icon: Icon(Icons.arrow_back)),
           title: session != null
               ? Row(
@@ -345,6 +347,7 @@ class ChatView extends StatelessWidget {
             ),
           ],
         ),
+        // In ChatView, modify the endDrawer section:
         endDrawer: Drawer(
           width: Get.width * 0.7,
           child: Container(
@@ -353,51 +356,107 @@ class ChatView extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  // ✅ FIXED: Single "New chat" button with proper implementation
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20),
-                    child: GestureDetector(
+                  Container(
+                    color: Colors.grey.shade700,
+                    child: ListTile(
+                      style: ListTileStyle.list,
+                      title: Text("New Chat", style: TextStyle(color: Colors.white)),
+                      leading: Icon(Icons.edit_note_rounded, color: Colors.white),
                       onTap: () async {
                         await _createNewChatSession();
                       },
-                      child: Row(
-                        children: const [
-                          Icon(Icons.edit_note_rounded, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'New chat',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: GestureDetector(
-                      onTap: () {
-                        Get.back(); // Close drawer
-                        // Get.to(ChatHistory()); // Navigate to history if needed
-                      },
-                      child: Row(
-                        children: const [
-                          Icon(Icons.access_time_outlined, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'History',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.history,color: Colors.white,),
+                              SizedBox(width: 10,),
+                              Text(
+                                "History",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+
+                              Spacer(),
+                              // In your ChatView widget, replace the IconButton in the history section with this:
+                              Obx(() {
+                                final chatController = Get.find<ChatController>(tag: controllerTag);
+                                return IconButton(
+                                  icon: chatController.isReloadingHistory.value
+                                      ? RotationTransition(
+                                    turns: Tween(begin: 0.0, end: 1.0).animate(
+                                      CurvedAnimation(
+                                        parent: chatController.historyAnimationController,
+                                        curve: Curves.linear,
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.refresh),
+                                  )
+                                      : const Icon(Icons.refresh),
+                                  onPressed: () async {
+                                    if (!chatController.isReloadingHistory.value) {
+                                      // Start animation
+                                      chatController.isReloadingHistory.value = true;
+                                      chatController.historyAnimationController.repeat();
+
+                                      // Make API call
+                                      await chatController.reloadHistory();
+
+                                      // Stop animation
+                                      chatController.historyAnimationController.stop();
+                                      chatController.isReloadingHistory.value = false;
+                                    }
+                                  },
+                                );
+                              }),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Divider(),
+                        Expanded(
+                          child: FutureBuilder(
+                            future: AuthRepository().fetchPersonaChatHistory(chatController.personaId),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              }
+
+                              if (snapshot.hasError || !snapshot.hasData || !snapshot.data!['success']) {
+                                return Center(child: Text("Failed to load history", style: TextStyle(color: Colors.white)));
+                              }
+
+                              final data = snapshot.data!;
+
+                              print('All sessions data: ${data}');
+                              final sessions = (data['sessions'] as List).map((e) => SessionHistory.fromJson(e)).toList();
+
+
+                              print('Number of sessions: ${sessions.length}');
+
+
+                              return ListView.builder(
+                                itemCount: sessions.length,
+                                itemBuilder: (context, index) {
+                                  final session = sessions[index];
+                                  return SessionHistoryTile(
+                                    session: session,
+                                    personaAvatar: "${ApiConstants.baseUrl}${data['persona']['avatar']}",
+                                    onTap: () => _loadSession(session.id.toString()),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -481,6 +540,69 @@ class ChatView extends StatelessWidget {
       Get.back();
       Get.snackbar("Error", "Error creating new session: $e");
       print("Error in _createNewChatSession: $e");
+    }
+  }
+
+
+  Future<void> _loadSession(String newSessionId) async {
+    try {
+      final chatController = Get.find<ChatController>(tag: controllerTag);
+      final currentPersonaId = chatController.personaId;
+      final token = await TokenStorage.getLoginAccessToken() ?? '';
+
+      // Close drawer first
+      Get.back();
+
+      // Show loading indicator
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // Save the new session ID
+      await TokenStorage.savePersonaSessionId(currentPersonaId, newSessionId);
+
+      // Create new WebSocket service and controller tag
+      final newWebSocket = WebSocketService();
+      final newControllerTag = 'chat-$newSessionId-${DateTime.now().millisecondsSinceEpoch}';
+
+      // Connect WebSocket
+      await newWebSocket.connect(newSessionId, token, personaId: currentPersonaId);
+
+      // Create new controller
+      final newController = ChatController(
+        wsService: newWebSocket,
+        sessionId: newSessionId,
+        personaId: currentPersonaId,
+        isNewSession: false, // This is an existing session
+      );
+
+      // Put the new controller in GetX
+      Get.put(newController, tag: newControllerTag, permanent: true);
+
+      // Close loading dialog
+      Get.back();
+
+      // Navigate to chat view
+      Get.offAll(() => ChatView(
+        sessionId: newSessionId,
+        token: token,
+        webSocketService: newWebSocket,
+        controllerTag: newControllerTag,
+      ));
+
+      // Delay cleanup of old controller
+      Future.delayed(const Duration(seconds: 1), () {
+        if (Get.isRegistered<ChatController>(tag: controllerTag)) {
+          final oldController = Get.find<ChatController>(tag: controllerTag);
+          oldController.onClose();
+          Get.delete<ChatController>(tag: controllerTag);
+        }
+      });
+    } catch (e) {
+      Get.back();
+      Get.snackbar("Error", "Error loading session: $e");
+      print("Error in _loadSession: $e");
     }
   }
 

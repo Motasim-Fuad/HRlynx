@@ -8,7 +8,7 @@ import '../../api_servies/token.dart';
 import '../../model/chat/session_chat_model.dart';
 import '../../model/chat/suggesions_Model.dart';
 
-class ChatController extends GetxController {
+class ChatController extends GetxController with GetTickerProviderStateMixin{
   final WebSocketService wsService;
   final String sessionId;
   final int personaId;
@@ -20,7 +20,8 @@ class ChatController extends GetxController {
   var isLoadingSuggestions = false.obs;
   var showSuggestions = true.obs;
   var isFirstTime = true.obs;
-
+  final isReloadingHistory = false.obs;
+  late AnimationController historyAnimationController;
   final bool isNewSession;
 
   final ScrollController scrollController = ScrollController();
@@ -36,14 +37,37 @@ class ChatController extends GetxController {
   void onInit() {
     super.onInit();
 
+    // Initialize animation controller
+    historyAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
     print('🔄 Initializing ChatController for persona: $personaId, session: $sessionId');
-
     fetchSessionDetails();
     fetchSuggestions(personaId);
-
     // Setup WebSocket stream listener with proper error handling
     _setupWebSocketListener();
   }
+
+
+// Add this method to your ChatController
+  Future<void> reloadHistory() async {
+    try {
+      // Force refresh the history by calling the API again
+      final response = await AuthRepository().fetchPersonaChatHistory(personaId);
+
+      if (response != null && response['success'] == true) {
+        // You can process the response here if needed
+        print('History reloaded successfully');
+      } else {
+        Get.snackbar('Error', 'Failed to reload history');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Error reloading history: $e');
+      print('Error reloading history: $e');
+    }
+  }
+
 
   void _setupWebSocketListener() {
     // Cancel any existing subscription
@@ -345,6 +369,8 @@ class ChatController extends GetxController {
     });
 
     // Dispose scroll controller if it hasn't been disposed yet
+
+    historyAnimationController.dispose();
     try {
       if (scrollController.hasClients) {
         scrollController.dispose();
