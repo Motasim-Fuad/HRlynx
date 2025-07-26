@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../api_servies/repository/auth_repo.dart';
 import '../../api_servies/webSocketServices.dart';
 import '../../api_servies/token.dart';
+import '../../model/chat/sessionHistoryModel.dart';
 import '../../model/chat/session_chat_model.dart';
 import '../../model/chat/suggesions_Model.dart';
 
@@ -23,6 +24,8 @@ class ChatController extends GetxController with GetTickerProviderStateMixin{
   final isReloadingHistory = false.obs;
   late AnimationController historyAnimationController;
   final bool isNewSession;
+  var sessionHistory = <SessionHistory>[].obs;
+
 
   final ScrollController scrollController = ScrollController();
 
@@ -65,6 +68,21 @@ class ChatController extends GetxController with GetTickerProviderStateMixin{
     } catch (e) {
       Get.snackbar('Error', 'Error reloading history: $e');
       print('Error reloading history: $e');
+    }
+  }
+
+  // Add method to refresh session history
+  Future<void> refreshSessionHistory() async {
+    try {
+      final response = await AuthRepository().fetchPersonaChatHistory(personaId);
+      if (response != null && response['success'] == true) {
+        final sessions = (response['sessions'] as List)
+            .map((e) => SessionHistory.fromJson(e))
+            .toList();
+        sessionHistory.assignAll(sessions);
+      }
+    } catch (e) {
+      print('Error refreshing session history: $e');
     }
   }
 

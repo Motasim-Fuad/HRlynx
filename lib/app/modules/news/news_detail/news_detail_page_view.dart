@@ -4,6 +4,8 @@ import 'package:damaged303/app/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
+// Using Intent for Android sharing
 
 class NewsDetailsView extends StatefulWidget {
   const NewsDetailsView({
@@ -82,11 +84,247 @@ class _NewsDetailsViewState extends State<NewsDetailsView> {
     }
   }
 
+  // Native sharing using platform channels
+  Future<void> _shareArticle() async {
+    try {
+      final article = await _fetchArticleDetails();
+      final url = article['original_url']?.toString() ?? '';
+      final title = article['ai_title']?.toString() ?? '';
+      final summary = article['ai_summary']?.toString() ?? '';
+
+      if (url.isNotEmpty && title.isNotEmpty) {
+        // Create a formatted share text
+        String shareText = '$title\n\n';
+
+        // Add a brief summary if available (limit to 100 characters)
+        if (summary.isNotEmpty) {
+          String shortSummary = summary.length > 100
+              ? '${summary.substring(0, 100)}...'
+              : summary;
+          shareText += '$shortSummary\n\n';
+        }
+
+        shareText += 'Read full article: $url\n\n';
+        shareText += 'Shared via HRlynx App';
+
+        // Try native sharing using platform channels
+        const platform = MethodChannel('com.example.share');
+        try {
+          await platform.invokeMethod('share', {
+            'title': 'Share Article',
+            'text': shareText,
+            'subject': title,
+          });
+        } catch (e) {
+          print('Native share failed: $e');
+          // Fallback: Use Android Intent directly
+          await _shareViaIntent(shareText, title);
+        }
+      } else {
+        Get.snackbar(
+          'Error',
+          'No content available to share',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange[100],
+          colorText: Colors.orange[800],
+        );
+      }
+    } catch (e) {
+      print('Error sharing article: $e');
+      // Fallback to copy option
+      final article = await _fetchArticleDetails();
+      final url = article['original_url']?.toString() ?? '';
+      await _copyToClipboard(url);
+    }
+  }
+
+  // Android Intent sharing
+  Future<void> _shareViaIntent(String text, String subject) async {
+    try {
+      const platform = MethodChannel('android_intent');
+      await platform.invokeMethod('share', {
+        'text': text,
+        'subject': subject,
+      });
+    } catch (e) {
+      print('Intent sharing failed: $e');
+      // Final fallback - copy to clipboard
+      await _copyToClipboard(text);
+    }
+  }
+
+  // Show share options as fallback
+  Future<void> _showShareOptions(String shareText, String url, String title) async {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Share Article',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1B1E28),
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // Manual sharing options
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareOption(
+                  icon: Icons.content_copy,
+                  label: 'Copy Text',
+                  onTap: () {
+                    Get.back();
+                    _copyToClipboard(shareText);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.link,
+                  label: 'Copy Link',
+                  onTap: () {
+                    Get.back();
+                    _copyToClipboard(url);
+                  },
+                ),
+                _buildShareOption(
+                  icon: Icons.launch,
+                  label: 'Open Link',
+                  onTap: () {
+                    Get.back();
+                    _launchOriginalUrl(url);
+                  },
+                ),
+              ],
+            ),
+
+            SizedBox(height: 20),
+
+            // Social media links (you can add specific app launches here)
+            Text(
+              'Or copy the text/link above and share manually on:',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF7D848D),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSocialOption('WhatsApp', Colors.green),
+                _buildSocialOption('Twitter', Colors.blue),
+                _buildSocialOption('Facebook', Color(0xFF1877F2)),
+                _buildSocialOption('LinkedIn', Color(0xFF0A66C2)),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildSocialOption(String name, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.share,
+            size: 16,
+            color: color,
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          name,
+          style: TextStyle(
+            fontSize: 10,
+            color: Color(0xFF1B1E28),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _copyToClipboard(String text) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: text));
+      Get.snackbar(
+        'Success',
+        'Copied to clipboard! You can now paste it in any app.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[800],
+        duration: Duration(seconds: 3),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Could not copy to clipboard',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+      );
+    }
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primarycolor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              size: 24,
+              color: AppColors.primarycolor,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF1B1E28),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _copyLinkToClipboard(String url) async {
+    await _copyToClipboard(url);
+  }
+
   void _onTagTapped(int index, Map<String, dynamic> tag) {
     _navigateToTaggedArticles(tag);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -108,27 +346,7 @@ class _NewsDetailsViewState extends State<NewsDetailsView> {
         actions: [
           IconButton(
             icon: Icon(Icons.share),
-            onPressed: () async {
-              try {
-                final article = await _fetchArticleDetails();
-                final url = article['original_url']?.toString() ?? '';
-                final title = article['ai_title']?.toString() ?? '';
-
-                if (url.isNotEmpty) {
-                  // You can implement actual sharing here using share_plus package
-                  Get.snackbar(
-                    'Share',
-                    'Sharing: $title',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
-                  // Example: Share.share('$title\n\n$url');
-                } else {
-                  Get.snackbar('Error', 'No URL available to share');
-                }
-              } catch (e) {
-                Get.snackbar('Error', 'Could not share article');
-              }
-            },
+            onPressed: _shareArticle, // Updated to use the new share function
           ),
         ],
       ),

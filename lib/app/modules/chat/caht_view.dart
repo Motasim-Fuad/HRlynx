@@ -25,6 +25,114 @@ DateTime? parseIsoDate(String? isoString) {
   }
 }
 
+// Separate widget for refresh button to avoid Obx issues
+class RefreshButton extends StatelessWidget {
+  final ChatController chatController;
+
+  const RefreshButton({super.key, required this.chatController});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      return IconButton(
+        icon: chatController.isReloadingHistory.value
+            ? RotationTransition(
+          turns: Tween(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(
+              parent: chatController.historyAnimationController,
+              curve: Curves.linear,
+            ),
+          ),
+          child: const Icon(Icons.refresh, color: Colors.white),
+        )
+            : const Icon(Icons.refresh, color: Colors.white),
+        onPressed: () async {
+          if (!chatController.isReloadingHistory.value) {
+            // Start animation
+            chatController.isReloadingHistory.value = true;
+            chatController.historyAnimationController.repeat();
+
+            // Make API call
+            await chatController.reloadHistory();
+
+            // Stop animation
+            chatController.historyAnimationController.stop();
+            chatController.isReloadingHistory.value = false;
+          }
+        },
+      );
+    });
+  }
+}
+
+// Separate widget for history list to avoid Obx issues
+class HistoryListWidget extends StatelessWidget {
+  final ChatController chatController;
+  final String sessionId;
+  final Function(String) onLoadSession;
+  final Function(int) onDeleteHistory;
+
+  const HistoryListWidget({
+    super.key,
+    required this.chatController,
+    required this.sessionId,
+    required this.onLoadSession,
+    required this.onDeleteHistory,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      // This Obx watches for the reload trigger
+      chatController.isReloadingHistory.value; // This line ensures Obx watches this observable
+
+      return FutureBuilder(
+        future: AuthRepository().fetchPersonaChatHistory(chatController.personaId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!['success']) {
+            return Center(child: Text("Failed to load history", style: TextStyle(color: Colors.white)));
+          }
+
+          final data = snapshot.data!;
+          final sessions = (data['sessions'] as List).map((e) => SessionHistory.fromJson(e)).toList();
+
+          if (sessions.isEmpty) {
+            return Center(child: Text("No chat history", style: TextStyle(color: Colors.white)));
+          }
+
+          return ListView.builder(
+            itemCount: sessions.length,
+            itemBuilder: (context, index) {
+              // Add bounds checking
+              if (index >= sessions.length) {
+                return const SizedBox.shrink();
+              }
+
+              final session = sessions[index];
+              final isCurrentSession = session.id == sessionId;
+
+              return SessionHistoryTile(
+                session: session,
+                onTap: () => onLoadSession(session.id),
+                onDelete: isCurrentSession ? null : () async {
+                  await onDeleteHistory(int.parse(session.id));
+                  // Trigger rebuild by updating the observable
+                  chatController.reloadHistory();
+                },
+                isCurrentSession: isCurrentSession,
+              );
+            },
+          );
+        },
+      );
+    });
+  }
+}
+
 class ChatView extends StatelessWidget {
   final String sessionId;
   final String token;
@@ -57,8 +165,6 @@ class ChatView extends StatelessWidget {
         permanent: true,
       );
     }
-
-
 
     final chatController = Get.find<ChatController>(tag: controllerTag);
     final tooltipCtrl = Get.put(ChatTooltipController());
@@ -363,7 +469,7 @@ class ChatView extends StatelessWidget {
                       title: Text("New Chat", style: TextStyle(color: Colors.white)),
                       leading: Icon(Icons.edit_note_rounded, color: Colors.white),
                       onTap: () async {
-                        await _createNewChatSession();
+                        await createNewChatSession();
                       },
                     ),
                   ),
@@ -386,78 +492,17 @@ class ChatView extends StatelessWidget {
                               ),
                               Spacer(),
                               // In your ChatView widget, replace the IconButton in the history section with this:
-                              Obx(() {
-                                final chatController = Get.find<ChatController>(tag: controllerTag);
-                                return IconButton(
-                                  icon: chatController.isReloadingHistory.value
-                                      ? RotationTransition(
-                                    turns: Tween(begin: 0.0, end: 1.0).animate(
-                                      CurvedAnimation(
-                                        parent: chatController.historyAnimationController,
-                                        curve: Curves.linear,
-                                      ),
-                                    ),
-                                    child: const Icon(Icons.refresh,color: Colors.white,),
-                                  )
-                                      : const Icon(Icons.refresh,color: Colors.white,),
-                                  onPressed: () async {
-                                    if (!chatController.isReloadingHistory.value) {
-                                      // Start animation
-                                      chatController.isReloadingHistory.value = true;
-                                      chatController.historyAnimationController.repeat();
-
-                                      // Make API call
-                                      await chatController.reloadHistory();
-
-                                      // Stop animation
-                                      chatController.historyAnimationController.stop();
-                                      chatController.isReloadingHistory.value = false;
-                                    }
-                                  },
-                                );
-                              }),
+                              RefreshButton(chatController: chatController),
                             ],
                           ),
                         ),
                         Divider(),
                         Expanded(
-                          child: FutureBuilder(
-                            future: AuthRepository().fetchPersonaChatHistory(chatController.personaId),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Center(child: CircularProgressIndicator());
-                              }
-
-                              if (snapshot.hasError || !snapshot.hasData || !snapshot.data!['success']) {
-                                return Center(child: Text("Failed to load history", style: TextStyle(color: Colors.white)));
-                              }
-
-                              final data = snapshot.data!;
-
-                              print('All sessions data: ${data}');
-                              final sessions = (data['sessions'] as List).map((e) => SessionHistory.fromJson(e)).toList();
-
-
-                              print('Number of sessions: ${sessions.length}');
-
-
-                              return ListView.builder(
-                                itemCount: sessions.length,
-                                itemBuilder: (context, index) {
-                                  final session = sessions[index];
-                                  return SessionHistoryTile(
-                                    session: session,
-                                    onTap: () => _loadSession(session.id), // FIXED: Pass as int
-                                    onDelete: () async {
-                                      await _deleteHistory(int.parse(session.id));// Still int
-                                      sessions.removeAt(index);
-                                      (context as Element).markNeedsBuild(); // Rebuild
-                                    },
-                                  );
-                                },
-                              );
-
-                            },
+                          child: HistoryListWidget(
+                            chatController: chatController,
+                            sessionId: sessionId,
+                            onLoadSession: loadSession,
+                            onDeleteHistory: deleteHistory,
                           ),
                         ),
                       ],
@@ -472,8 +517,7 @@ class ChatView extends StatelessWidget {
     });
   }
 
-
-  Future<void> _deleteHistory(int sessionId) async {
+  Future<void> deleteHistory(int sessionId) async {
     try {
       Get.dialog(
         const Center(child: CircularProgressIndicator()),
@@ -481,7 +525,6 @@ class ChatView extends StatelessWidget {
       );
 
       final result = await AuthRepository().deleteHistory(sessionId);
-
       Get.back(); // Close loading dialog
 
       if (result != null && result['success'] == true) {
@@ -499,12 +542,7 @@ class ChatView extends StatelessWidget {
     }
   }
 
-
-  // ✅ FIXED: Extracted new chat creation logic into separate method
-// Replace your _createNewChatSession method with this corrected version:
-// Replace your _createNewChatSession method with this corrected version:
-
-  Future<void> _createNewChatSession() async {
+  Future<void> createNewChatSession() async {
     final chatController = Get.find<ChatController>(tag: controllerTag);
     final currentPersonaId = chatController.personaId;
 
@@ -542,6 +580,7 @@ class ChatView extends StatelessWidget {
           isNewSession: true,
         );
         newController.isFirstTime.value = true;
+
         // Put the new controller in GetX
         Get.put(newController, tag: newControllerTag, permanent: true);
 
@@ -571,12 +610,11 @@ class ChatView extends StatelessWidget {
     } catch (e) {
       Get.back();
       Get.snackbar("Error", "Error creating new session: $e");
-      print("Error in _createNewChatSession: $e");
+      print("Error in createNewChatSession: $e");
     }
   }
 
-
-  Future<void> _loadSession(String newSessionId) async {
+  Future<void> loadSession(String newSessionId) async {
     try {
       final chatController = Get.find<ChatController>(tag: controllerTag);
       final currentPersonaId = chatController.personaId;
@@ -634,7 +672,7 @@ class ChatView extends StatelessWidget {
     } catch (e) {
       Get.back();
       Get.snackbar("Error", "Error loading session: $e");
-      print("Error in _loadSession: $e");
+      print("Error in loadSession: $e");
     }
   }
 
