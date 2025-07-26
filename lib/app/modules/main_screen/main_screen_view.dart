@@ -15,7 +15,7 @@ class MainScreen extends StatelessWidget {
     HomeView(),
     // CahtView(),
     NewsView(),
-    PorfileView(),
+    ProfileView(),
   ];
 
   @override

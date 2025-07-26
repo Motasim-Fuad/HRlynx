@@ -31,12 +31,6 @@ class NewsView extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.notifications_none_outlined, size: 30),
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: controller.refreshData,

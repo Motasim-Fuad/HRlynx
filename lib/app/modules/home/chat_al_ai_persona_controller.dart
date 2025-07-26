@@ -70,69 +70,6 @@ class ChatAllAiPersona extends GetxController {
     }
   }
 
-
-  // Future<void> startChatSession(Data persona) async {
-  //   try {
-  //     final personaId = persona.id!;
-  //     final tag = 'chat_$personaId';
-  //     print('👉 Starting chat for persona: $personaId');
-  //
-  //     final token = await TokenStorage.getLoginAccessToken();
-  //     if (token == null) throw Exception('Token is null');
-  //
-  //     // Step 1: Get existing sessionId if stored
-  //     String? sessionIdNullable = await TokenStorage.getPersonaSessionId(personaId);
-  //     late String sessionId;
-  //
-  //     if (sessionIdNullable == null) {
-  //       // Step 2: Create new session via API
-  //       sessionId = await authRepo.createSession(personaId) ?? (throw Exception('Failed to create session'));
-  //
-  //
-  //       print("🆕 ♻️♻️♻️♻️♻️♻️♻️NEW sessionId type: ${sessionId.runtimeType}, value: '$sessionId'");
-  //
-  //       // Step 3: Save to SharedPreferences
-  //       await TokenStorage.savePersonaSessionId(personaId, sessionId);
-  //     } else {
-  //       // Step 4: Use existing sessionId
-  //       sessionId = sessionIdNullable;
-  //       print("♻️ Reusing stored sessionId for persona $personaId: $sessionId");
-  //
-  //       print("♻️♻️♻️♻️♻️♻️️️STORED sessionId type: ${sessionId.runtimeType}, value: '$sessionId'");
-  //     }
-  //
-  //     // Step 5: Initialize WebSocket
-  //     final wsService = WebSocketService();
-  //     wsService.connect(sessionId, token, personaId: personaId);
-  //
-  //     // Step 6: Register ChatController with unique tag if not already
-  //     if (!Get.isRegistered<ChatController>(tag: tag)) {
-  //       Get.put(ChatController(
-  //         wsService: wsService,
-  //         sessionId: sessionId,
-  //         personaId: personaId,
-  //       ), tag: tag);
-  //     }
-  //
-  //     // Step 7: Navigate to chat view
-  //     Get.to(() => ChatView(
-  //       sessionId: sessionId,
-  //       token: token,
-  //       webSocketService: wsService,
-  //       controllerTag: tag,
-  //     ));
-  //
-  //   } catch (e) {
-  //     print('❌ Error in startChatSession: $e');
-  //     Get.snackbar("Error", "Could not start chat session");
-  //   }
-  // }
-
-
-
-
-
-
   Future<void> fetchAllAiPersona() async {
     try {
       isLoading.value = true;
@@ -145,9 +82,6 @@ class ChatAllAiPersona extends GetxController {
       isLoading.value = false;
     }
   }
-
-
-
 
 }
 

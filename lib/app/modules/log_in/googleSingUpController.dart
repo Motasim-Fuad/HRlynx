@@ -1,4 +1,5 @@
 
+import 'package:damaged303/app/modules/log_in/user_controller.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -7,6 +8,8 @@ import '../../api_servies/repository/auth_repo.dart';
 import '../main_screen/main_screen_view.dart';
 
 class GoogleSignUpController extends GetxController {
+
+  final userController = Get.put(UserController());
   final AuthRepository _authRepo = AuthRepository();
   final isLoading = false.obs;
 
@@ -54,7 +57,7 @@ class GoogleSignUpController extends GetxController {
         provider: 'google',
         personaBody: personaBody,
       );
-
+      userController.setUserEmail(user.email ?? 'No Email Found');
       // Step 3: Handle success or failure
       if (success) {
         Get.snackbar("Success", "Google sign-in complete and persona set.");

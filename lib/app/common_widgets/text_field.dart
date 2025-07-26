@@ -7,7 +7,8 @@ class CustomTextFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
-  final void Function(String)? onChanged; // ✅ Add this
+  final void Function(String)? onChanged;
+  final int? maxLines; // allow passing maxLines
 
   const CustomTextFormField({
     super.key,
@@ -17,7 +18,8 @@ class CustomTextFormField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.suffixIcon,
     this.validator,
-    this.onChanged, // ✅ Add this
+    this.onChanged,
+    this.maxLines,
   });
 
   @override
@@ -27,28 +29,13 @@ class CustomTextFormField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      onChanged: onChanged, // ✅ Add this
+      onChanged: onChanged,
+      maxLines: obscureText ? 1 : (maxLines ?? 1), // 👈 important line
       decoration: InputDecoration(
         hintText: hintText,
         suffixIcon: suffixIcon,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.blue),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.red),
-        ),
+        border: OutlineInputBorder(),
       ),
     );
   }
 }
-

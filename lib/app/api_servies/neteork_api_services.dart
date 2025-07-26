@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:damaged303/app/api_servies/token.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 
 class NetworkApiServices {
   /// ✅ Get appropriate token based on tokenType
@@ -106,6 +108,102 @@ class NetworkApiServices {
 //       throw FormatException('Unexpected response format: ${response.body}');
 //     }
 //   }
+
+
+  // NEW METHOD: For multipart data with file upload
+  static Future<dynamic> postMultipartApi(
+      String url,
+      Map<String, dynamic> fields, {
+        File? imageFile,
+        String imageFieldName = 'profile_picture',
+        bool withAuth = true,
+        String tokenType = 'access',
+      }) async {
+    try {
+      print('🌐 Multipart POST URL: $url');
+      print('📤 Fields: $fields');
+      print('🖼️ Image: ${imageFile?.path}');
+
+      var request = http.MultipartRequest('POST', Uri.parse(url));
+
+      // Add authorization header if required
+      if (withAuth) {
+        String? token;
+        if (tokenType == 'login') {
+          token = await TokenStorage.getLoginAccessToken();
+        } else {
+          token = await TokenStorage.getLoginAccessToken();
+        }
+
+        if (token != null && token.isNotEmpty) {
+          request.headers['Authorization'] = 'Bearer $token';
+        }
+      }
+
+      // Add text fields
+      fields.forEach((key, value) {
+        if (value != null) {
+          request.fields[key] = value.toString();
+        }
+      });
+
+      // Add image file if provided
+      if (imageFile != null && imageFile.existsSync()) {
+        String fileName = imageFile.path.split('/').last;
+        String fileExtension = fileName.split('.').last.toLowerCase();
+
+        // Determine MIME type based on file extension
+        MediaType mediaType;
+        switch (fileExtension) {
+          case 'jpg':
+          case 'jpeg':
+            mediaType = MediaType('image', 'jpeg');
+            break;
+          case 'png':
+            mediaType = MediaType('image', 'png');
+            break;
+          case 'gif':
+            mediaType = MediaType('image', 'gif');
+            break;
+          case 'webp':
+            mediaType = MediaType('image', 'webp');
+            break;
+          default:
+            mediaType = MediaType('image', 'jpeg'); // default
+        }
+
+        var multipartFile = await http.MultipartFile.fromPath(
+          imageFieldName,
+          imageFile.path,
+          contentType: mediaType,
+          filename: fileName,
+        );
+
+        request.files.add(multipartFile);
+        print('✅ Image file added: $fileName (${mediaType.toString()})');
+      }
+
+      print('🚀 Sending multipart request...');
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      print('🔎 Response Code: ${response.statusCode}');
+      print('📦 Raw Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        var responseData = jsonDecode(response.body);
+        print('✅ Multipart Success: $responseData');
+        return responseData;
+      } else {
+        var errorData = jsonDecode(response.body);
+        print('❌ Multipart Error: $errorData');
+        throw Exception('API Error: ${errorData['message'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      print('❌ Multipart Exception: $e');
+      rethrow;
+    }
+  }
 
   static dynamic _handleResponse(http.Response response) {
     print('🔎 Response Code: ${response.statusCode}');

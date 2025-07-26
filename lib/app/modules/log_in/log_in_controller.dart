@@ -1,3 +1,4 @@
+import 'package:damaged303/app/modules/log_in/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../api_servies/repository/auth_repo.dart';
@@ -5,6 +6,9 @@ import '../../api_servies/token.dart';
 import '../main_screen/main_screen_view.dart';
 
 class LogInController extends GetxController {
+
+
+  final userController = Get.put(UserController());
   final AuthRepository _authRepo = AuthRepository();
 
   final emailController = TextEditingController();
@@ -42,6 +46,9 @@ class LogInController extends GetxController {
       final data = response['data'];
       final access = data?['access'];
       final refresh = data?['refresh'];
+
+
+      userController.setUserEmail(email);
 
       if (access != null && refresh != null) {
         await TokenStorage.saveLoginTokens(access, refresh);

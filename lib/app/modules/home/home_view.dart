@@ -154,33 +154,9 @@ class HomeView extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final persona = controller.personaList[index];
                       return GestureDetector(
-
-
                         onTap: () async {
                           await controller.startChatSession(persona);
                         },
-                        // use web socket
-                        // onTap: () async {
-                        //   final sessionId = await controller.authRepo.createSession();
-                        //   final token = await TokenStorage.getLoginAccessToken();
-                        //
-                        //   if (sessionId != null && token != null) {
-                        //     final wsService = WebSocketService();
-                        //     wsService.connect(sessionId, token);
-                        //
-                        //     Get.put(ChatController(wsService: wsService));
-                        //
-                        //     Get.to(() => ChatView(
-                        //       sessionId: sessionId,
-                        //       token: token,
-                        //       webSocketService: wsService,
-                        //     ));
-                        //   } else {
-                        //     Get.snackbar("Error", "Could not create session");
-                        //   }
-                        // },
-
-
 
                         child: Container(
                           decoration: BoxDecoration(

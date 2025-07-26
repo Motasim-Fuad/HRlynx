@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../api_Constant.dart';
 import '../neteork_api_services.dart';
 import '../token.dart';
@@ -146,6 +148,28 @@ class AuthRepository {
       withAuth: true,
       tokenType: 'login', // Use access token from login
     );
+  }
+
+
+  Future<dynamic> uploadProfileData(Map<String, dynamic> body, {File? imageFile}) async {
+    String url = "${ApiConstants.baseUrl}/api/auth/profile/";
+
+    // Remove image path from body if it exists
+    Map<String, dynamic> cleanBody = Map.from(body);
+    cleanBody.remove('profile_picture');
+
+    return await NetworkApiServices.postMultipartApi(
+      url,
+      cleanBody,
+      imageFile: imageFile,
+      imageFieldName: 'profile_picture',
+      withAuth: true,
+      tokenType: 'login',
+    );
+  }
+  Future<dynamic> fetchProfileData() async {
+    String url = "${ApiConstants.baseUrl}/api/auth/profile/"; // This is correct!
+    return await NetworkApiServices.getApi(url, withAuth: true, tokenType: 'login');
   }
 
 // ---------- home ----------
